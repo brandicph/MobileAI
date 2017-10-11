@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="0dp"
+    android:paddingRight="0dp"
+    android:orientation="vertical" >
+    <ScrollView
+        android:id="@+id/scroller"
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:fillViewport="true" >
+
+        <TextView
+            android:id="@+id/console"
+            android:layout_width="fill_parent"
+            android:layout_height="132dp"
+            android:bufferType="spannable"
+            android:editable="false"
+            android:enabled="false"
+            android:focusable="true"
+            android:focusableInTouchMode="false"
+            android:freezesText="true"
+            android:inputType="textMultiLine"
+            android:isScrollContainer="true"
+            android:scrollbars="vertical"
+            android:gravity="bottom"
+            android:text="" >
+
+            <requestFocus />
+        </TextView>
+    </ScrollView>
+</LinearLayout>
