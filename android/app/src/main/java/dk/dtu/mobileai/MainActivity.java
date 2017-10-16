@@ -3,7 +3,7 @@ package dk.dtu.mobileai;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.os.Build;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -13,15 +13,40 @@ import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.view.View;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.view.View.OnFocusChangeListener;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-import static dk.dtu.mobileai.R.styleable.View;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -175,6 +200,103 @@ public class MainActivity extends AppCompatActivity {
             print("LteCqi = " + lteCqi);
             //print("ALL == " + ssignal);
 
+            //new RetrieveFeedTask().execute();
+            //new PostTask().execute("value");
+            /*
+            MobileAiApi mobileAiApi = MobileAiApi.retrofit.create(MobileAiApi.class);
+            Call<List<CellInfoLte>> call = mobileAiApi.getAllCellInfoLte();
+
+            call.enqueue(new Callback<List<CellInfoLte>>() {
+                @Override
+                public void onResponse(Call<List<CellInfoLte>> call, Response<List<CellInfoLte>> response) {
+                    List<CellInfoLte> result = response.body();
+                    Log.i(LTE_TAG, result.toString());
+                }
+
+                @Override
+                public void onFailure(Call<List<CellInfoLte>> call, Throwable t) {
+
+                }
+
+            });
+            */
+
+            final MobileAiApi mobileAiApi = MobileAiApi.retrofit.create(MobileAiApi.class);
+
+            List<CellInfo> cellInfo = telephonyManager.getAllCellInfo();
+            for (final CellInfo ci : cellInfo){
+                if (ci instanceof android.telephony.CellInfoLte){
+                    DateFormat date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+                    Call<CellInfoLte> call = mobileAiApi.postCellInfoLte(ci.isRegistered(), date.format(ci.getTimeStamp() / 1000));
+
+                    call.enqueue(new Callback<CellInfoLte>() {
+                        @Override
+                        public void onResponse(Call<CellInfoLte> call, Response<CellInfoLte> response) {
+                            final CellInfoLte result = response.body();
+                            final String url = result.getUrl();
+
+                            android.telephony.CellIdentityLte cellIdentityLte = ((android.telephony.CellInfoLte) ci).getCellIdentity();
+                            Call<CellIdentityLte> callCellIdentityLte = mobileAiApi.postCellIdentityLte(
+                                    cellIdentityLte.getMcc(),
+                                    cellIdentityLte.getTac(),
+                                    cellIdentityLte.getEarfcn(),
+                                    cellIdentityLte.getCi(),
+                                    cellIdentityLte.getMnc(),
+                                    cellIdentityLte.getPci(),
+                                    url);
+
+                            android.telephony.CellSignalStrengthLte cellSignalStrengthLte = ((android.telephony.CellInfoLte) ci).getCellSignalStrength();
+                            Call<CellSignalStrengthLte> callCellSignalStrengthLte = mobileAiApi.postCellSignalStrengthLte(
+                                    //cellSignalStrengthLte.getCqi(),
+                                    2147483647,
+                                    //cellSignalStrengthLte.getRssnr(),
+                                    2147483647,
+                                    cellSignalStrengthLte.getTimingAdvance(),
+                                    cellSignalStrengthLte.getDbm(),
+                                    //cellSignalStrengthLte.getRsrp(),
+                                    2147483647,
+                                    //cellSignalStrengthLte.getRsrq(),
+                                    2147483647,
+                                    url);
+
+                            callCellIdentityLte.enqueue(new Callback<CellIdentityLte>() {
+
+                                @Override
+                                public void onResponse(Call<CellIdentityLte> call, Response<CellIdentityLte> response) {
+
+                                }
+
+                                @Override
+                                public void onFailure(Call<CellIdentityLte> call, Throwable t) {
+
+                                }
+                            });
+
+                            callCellSignalStrengthLte.enqueue(new Callback<CellSignalStrengthLte>() {
+                                @Override
+                                public void onResponse(Call<CellSignalStrengthLte> call, Response<CellSignalStrengthLte> response) {
+
+                                }
+
+                                @Override
+                                public void onFailure(Call<CellSignalStrengthLte> call, Throwable t) {
+
+                                }
+                            });
+
+
+                        }
+
+                        @Override
+                        public void onFailure(Call<CellInfoLte> call, Throwable t) {
+                            Log.i(LTE_TAG, t.toString());
+                        }
+
+                    });
+                }
+                Log.i(LTE_TAG, "=============> " + ci.toString());
+            }
+
         }
         catch (Exception e)
         {
@@ -197,5 +319,72 @@ public class MainActivity extends AppCompatActivity {
     // Used to load the 'native-lib' library on application startup.
     static {
         System.loadLibrary("native-lib");
+    }
+}
+
+class RetrieveFeedTask extends AsyncTask<Void, Void, String> {
+
+    private Exception exception;
+
+    protected void onPreExecute() {
+
+    }
+
+    protected String doInBackground(Void... urls) {
+
+        try {
+            URL url = new URL("http://192.168.1.4:8000");
+            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            try {
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+                StringBuilder stringBuilder = new StringBuilder();
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    stringBuilder.append(line).append("\n");
+                }
+                bufferedReader.close();
+                return stringBuilder.toString();
+            }
+            finally{
+                urlConnection.disconnect();
+            }
+        }
+        catch(Exception e) {
+            Log.e("ERROR", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    protected void onPostExecute(String response) {
+        if(response == null) {
+            response = "THERE WAS AN ERROR";
+        }
+        Log.i("INFO", response);
+    }
+}
+
+
+class PostTask extends AsyncTask<String, String, String> {
+    @Override
+    protected String doInBackground(String... data) {
+        // Create a new HttpClient and Post Header
+        HttpClient httpclient = new DefaultHttpClient();
+        HttpPost httppost = new HttpPost("http://192.168.1.4:8000/cellinfolte/");
+
+        try {
+            //add data
+            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);
+            nameValuePairs.add(new BasicNameValuePair("registered", data[0]));
+            nameValuePairs.add(new BasicNameValuePair("timestamp", data[0]));
+            httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+            //execute http post
+            HttpResponse response = httpclient.execute(httppost);
+
+        } catch (ClientProtocolException e) {
+
+        } catch (IOException e) {
+
+        }
+        return null;
     }
 }
