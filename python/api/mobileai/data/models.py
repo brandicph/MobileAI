@@ -44,3 +44,13 @@ class CellSignalStrengthLte(models.Model):
 
     class Meta:
         ordering = ('created',)
+
+"""
+class QualiPocLte(models.Model):
+    cell_id = models.IntegerField()
+    timestamp = models.DateTimeField(auto_now_add=True) #yyyy-MM-dd HH:mm:ss.SSS
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('created',)
+"""
