@@ -28,7 +28,8 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'localhost',
     '192.168.1.4',
-    '127.0.0.1'
+    '127.0.0.1',
+    '77yf5ab7mlduslgz.onion',
 ]
 
 
