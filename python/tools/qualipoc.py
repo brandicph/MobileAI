@@ -3,10 +3,14 @@ from datetime import datetime,timedelta
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+import logging
+import sys
 
 from scipy.stats import kendalltau
 import seaborn as sns
 import matplotlib.pyplot as plt
+
+
 
 #CSV_IN_FILEPATH = '../../data/2017-11-17-12-39-33-0000-5310-7746-0004-S.csv'
 #CSV_IN_FILEPATH = '../../data/2017-11-27-14-07-44-0000-5310-7746-0004-S.csv'
@@ -121,20 +125,65 @@ USE_COLS = [0,1,2,3,4,7,9,10,24,31,45,46,47,61,65,74,76,91]
 
 class QualiPoc(object):
 
+    # Static variables
+    LOG_TAG = "QualiPoc"
+    LOG_LEVEL = logging.INFO
+    LOG_STYLES = {
+        'RED': '\x1b[31m',  # red
+        'YELLOW': '\x1b[33m',  # yellow
+        'GREEN': '\x1b[32m',  # green
+        'PINK': '\x1b[35m',  # pink
+        'NORMAL': '\x1b[0m',  # normal
+        'RESET_SEQ': '\033[0m',
+        'BOLD_SEQ': '\033[1m'
+    }
+    LOG_FORMAT = "{}{}[{}]{}{}[%(asctime)s.%(msecs)03d]{}[%(levelname)s] %(message)s".format(LOG_STYLES['BOLD_SEQ'], LOG_STYLES['RED'], LOG_TAG, LOG_STYLES['RESET_SEQ'], LOG_STYLES['NORMAL'], LOG_STYLES['NORMAL'])
+
     def __init__(self, csv_in_file=None, csv_out_file=None):
+        # Setup logger
+        self.logger = self.setup_logger()
+        self.logger.info('Started parsing...')
+        # Set variables
         self.csv_in_file = csv_in_file
         self.csv_out_file = csv_out_file
+        # Read QualiPoc csv file
         self.df = pd.read_csv(
             self.csv_in_file,
             parse_dates=["Time"],
             converters={24: self.parse_cycles, 91: self.parse_cqi },
             usecols=USE_COLS,
             #names=COLUMN_NAMES
-        ).dropna(subset=['Cycles', 'RSSI', 'RSRP', 'RSRQ', 'Bytes Transferred'])
-
+        )
+        # For tracking
+        values_before_parsing = len(self.df)
+        # Drop rows that include NaN value in specific columns
+        self.df = self.df.dropna(subset=['Cycles', 'RSSI', 'RSRP', 'RSRQ', 'Bytes Transferred'])
+        # Ensure specific technology
         self.df = self.df[self.df["Data technology"] == 'LTE']
-        #self.df['Bitrate'] = self.df["Bytes Transferred"].cumsum()
+        # For tracking
+        values_after_parsing = len(self.df)
+        values_ratio_after_parsing = self.safe_division(values_after_parsing, values_before_parsing)
+        self.logger.info('Data values: {}/{} ({:.3f})'.format(values_after_parsing, values_before_parsing, values_ratio_after_parsing))
+        # Calculate commulative transfer rate
+        # DataFrame.cumsum() will not do any good
         self.df = self.calculate_transfer_rate(self.df)
+
+        self.logger.info('Done parsing...')
+
+    def setup_logger(self):
+        # create logger
+        logger = logging.getLogger('console')
+        logger.setLevel(self.LOG_LEVEL)
+        # create console handler and set level to debug
+        ch = logging.StreamHandler()
+        ch.setLevel(self.LOG_LEVEL)
+        # create formatter
+        formatter = ColorFormatter(self.LOG_FORMAT, "%Y-%m-%d %H:%M:%S")
+        # add formatter to ch
+        ch.setFormatter(formatter)
+        # add ch to logger
+        logger.addHandler(ch)
+        return logger
 
     def parse_cqi(self, data):
         arr = data.replace(' ', '').split('/')
@@ -152,6 +201,9 @@ class QualiPoc(object):
         for i,v in enumerate(arr):
             arr[i] = int(v)
         return arr[0]
+
+    def safe_division(self, a, b):
+        return a / b if b else 0.0
 
     def calculate_transfer_rate(self, data):
         # Add missing fields with zero padding
@@ -194,19 +246,45 @@ class QualiPoc(object):
             duration_seconds = data.at[i, 'Duration'].total_seconds() #self.df.at[i, 'Duration'].seconds + self.df.at[i, 'Duration'].microseconds/1E6
             data.at[i, 'Duration Seconds'] = duration_seconds
             
-            # Calulate bitrate bits/sec
+            # Calulate bitrate mbits/sec
             transferred_cycle_bits = total * 8.0
             transferred_cycle_mbits = transferred_cycle_bits / 1E6
-            data.at[i, 'Bitrate'] = (transferred_cycle_mbits / duration_seconds) if duration_seconds > 0 else 0.0
+            data.at[i, 'Bitrate'] = self.safe_division(transferred_cycle_mbits, duration_seconds)
 
             # Set the current bytes transferred as the previus value
             prev_value = data.at[i, "Bytes Transferred"]
             prev_cycle = data.at[i, 'Cycles']
             
             # Print values for debugging purpose
-            #print("{} / {} = {}".format(transferred_cycle_mbits, duration_seconds, data.at[i, 'Bitrate']))
+            self.logger.debug("{} / {} = {}".format(transferred_cycle_mbits, duration_seconds, data.at[i, 'Bitrate']))
 
         return data
+
+class ColorFormatter(logging.Formatter):
+
+    LOG_STYLES = {
+        'RED': '\x1b[31m',  # red
+        'BLUE': '\x1b[34m',  # blue
+        'YELLOW': '\x1b[33m',  # yellow
+        'GREEN': '\x1b[32m',  # green
+        'PINK': '\x1b[35m',  # pink
+        'NORMAL': '\x1b[0m',  # normal
+        'RESET_SEQ': '\033[0m',
+        'BOLD_SEQ': '\033[1m'
+    }
+
+    def __init__(self, *args, **kwargs):
+        # can't do super(...) here because Formatter is an old school class
+        logging.Formatter.__init__(self, *args, **kwargs)
+
+    def format(self, record):
+        levelname = record.levelname
+        message   = logging.Formatter.format(self, record)
+        message   = message.replace("[DEBUG]", "{}[DEBUG]{}".format(self.LOG_STYLES['PINK'], self.LOG_STYLES['NORMAL']))
+        message   = message.replace("[INFO]", "{}[INFO]{}".format(self.LOG_STYLES['GREEN'], self.LOG_STYLES['NORMAL']))
+        message   = message.replace("[ERROR]", "{}[ERROR]{}".format(self.LOG_STYLES['RED'], self.LOG_STYLES['NORMAL']))
+        message   = message.replace("[WARNING]", "{}[WARNING]{}".format(self.LOG_STYLES['YELLOW'], self.LOG_STYLES['NORMAL']))
+        return message
 
 
 qp = QualiPoc(CSV_IN_FILEPATH)
@@ -214,7 +292,12 @@ qp = QualiPoc(CSV_IN_FILEPATH)
 plot_data = qp.df[qp.df["Cycles"] == 2.0]
 #print(plot_data)
 
+qp.logger.info('Started plotting...')
 
 sns.regplot(x="RSSI", y="Bitrate", data=plot_data)
 
+qp.logger.info('Showing plot...')
+
 plt.show()
+
+qp.logger.info('Exit...')
