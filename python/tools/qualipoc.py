@@ -9,8 +9,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 #CSV_IN_FILEPATH = '../../data/2017-11-17-12-39-33-0000-5310-7746-0004-S.csv'
-CSV_IN_FILEPATH = '../../data/2017-11-27-14-07-44-0000-5310-7746-0004-S.csv'
-#CSV_IN_FILEPATH = '../../data/2017-12-06-12-34-57-0000-5310-7746-0004-S.csv'
+#CSV_IN_FILEPATH = '../../data/2017-11-27-14-07-44-0000-5310-7746-0004-S.csv'
+CSV_IN_FILEPATH = '../../data/2017-12-06-12-34-57-0000-5310-7746-0004-S.csv'
 CSV_OUT_FILEPATH = '../../data/measurement_data.csv'
 
 COLUMN_NAMES = {
@@ -119,7 +119,7 @@ COLUMN_NAMES = {
 
 USE_COLS = [0,1,2,3,4,7,9,10,24,31,45,46,47,61,65,74,76,91]
 
-class QualPoc(object):
+class QualiPoc(object):
 
     def __init__(self, csv_in_file=None, csv_out_file=None):
         self.csv_in_file = csv_in_file
@@ -134,7 +134,7 @@ class QualPoc(object):
 
         self.df = self.df[self.df["Data technology"] == 'LTE']
         #self.df['Bitrate'] = self.df["Bytes Transferred"].cumsum()
-        self.calculate_transfer_rate()
+        self.df = self.calculate_transfer_rate(self.df)
 
     def parse_cqi(self, data):
         arr = data.replace(' ', '').split('/')
@@ -145,6 +145,7 @@ class QualPoc(object):
         return arr
 
     def parse_cycles(self, data):
+        # Parse cycles "x/n" (ex. 2/5)
         arr = data.replace(' ', '').split('/')
         if len(arr) <= 1:
             return np.nan
@@ -152,56 +153,63 @@ class QualPoc(object):
             arr[i] = int(v)
         return arr[0]
 
-    def calculate_transfer_rate(self):
-        self.df['Bytes Transferred Cycle'] = self.df["Bytes Transferred"]
-        self.df['Duration'] = self.df["Bytes Transferred"]
-        self.df['Duration Seconds'] = self.df["Bytes Transferred"]
-        self.df['Bitrate'] = self.df["Bytes Transferred"]
+    def calculate_transfer_rate(self, data):
+        # Add missing fields with zero padding
+        data['Bytes Transferred Cycle'] = 0.0
+        data['Duration'] = 0.0
+        data['Duration Seconds'] = 0.0
+        data['Bitrate'] = 0.0
 
-        #self.df['Bitrate'] = self.df["Bytes Transferred"]
-        arrlen = len(self.df)
+        # Local values
         prev_value = 0
         prev_cycle = 0
         total = 0
         start_time = None
-        for i, v in self.df.iterrows():
-            if start_time == None: 
-                start_time = v["Time"]
 
-            # 
-            if v['Cycles'] != prev_cycle:
-                start_time = v["Time"]
+        # Loop through DataFrame using indexes
+        # OBS. Index lookup shows to be much faster than data.iterows()
+        for i in data.index.values:
+            # Set the starting time
+            if start_time == None: 
+                start_time = data.at[i, "Time"]
+
+            # Detect cycles
+            if data.at[i, 'Cycles'] != prev_cycle:
+                start_time = data.at[i, "Time"]
                 prev_value = 0
                 total = 0
 
-            if v["Bytes Transferred"] != prev_value:
+            if data.at[i, "Bytes Transferred"] != prev_value:
                 # If the the current bytes transferred is different, then add to total
                 # This is to prevent duplicate values found in the QualiPoc dataset
                 total += prev_value
 
             # Set the total amount of transferred bytes to current total
-            self.df.at[i, 'Bytes Transferred Cycle'] = total
+            data.at[i, 'Bytes Transferred Cycle'] = total
 
             # Calculate total duration (deltatime)
-            self.df.at[i, 'Duration'] = v["Time"] - start_time
+            data.at[i, 'Duration'] = data.at[i, "Time"] - start_time
             
             # Calculate total cycle duration in seconds
-            duration_seconds = self.df.at[i, 'Duration'].total_seconds() #self.df.at[i, 'Duration'].seconds + self.df.at[i, 'Duration'].microseconds/1E6
-            self.df.at[i, 'Duration Seconds'] = duration_seconds
+            duration_seconds = data.at[i, 'Duration'].total_seconds() #self.df.at[i, 'Duration'].seconds + self.df.at[i, 'Duration'].microseconds/1E6
+            data.at[i, 'Duration Seconds'] = duration_seconds
             
             # Calulate bitrate bits/sec
             transferred_cycle_bits = total * 8.0
             transferred_cycle_mbits = transferred_cycle_bits / 1E6
-            self.df.at[i, 'Bitrate'] = (transferred_cycle_mbits / duration_seconds) if duration_seconds > 0 else 0.0
+            data.at[i, 'Bitrate'] = (transferred_cycle_mbits / duration_seconds) if duration_seconds > 0 else 0.0
 
             # Set the current bytes transferred as the previus value
-            prev_value = v["Bytes Transferred"]
-            prev_cycle = v['Cycles']
+            prev_value = data.at[i, "Bytes Transferred"]
+            prev_cycle = data.at[i, 'Cycles']
             
-            print("{} / {} = {}".format(transferred_cycle_mbits, duration_seconds, self.df.at[i, 'Bitrate']))
+            # Print values for debugging purpose
+            #print("{} / {} = {}".format(transferred_cycle_mbits, duration_seconds, data.at[i, 'Bitrate']))
+
+        return data
 
 
-qp = QualPoc(CSV_IN_FILEPATH)
+qp = QualiPoc(CSV_IN_FILEPATH)
 
 plot_data = qp.df[qp.df["Cycles"] == 2.0]
 #print(plot_data)
