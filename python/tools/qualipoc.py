@@ -139,6 +139,8 @@ class QualiPoc(object):
     }
     LOG_FORMAT = "{}{}[{}]{}{}[%(asctime)s.%(msecs)03d]{}[%(levelname)s] %(message)s".format(LOG_STYLES['BOLD_SEQ'], LOG_STYLES['RED'], LOG_TAG, LOG_STYLES['RESET_SEQ'], LOG_STYLES['NORMAL'], LOG_STYLES['NORMAL'])
 
+    RSRP_MAPPING = { rssi : i for i, rssi in enumerate(range(-140, -44, 1)) }
+
     def __init__(self, csv_in_file=None, csv_out_file=None):
         # Setup logger
         self.logger = self.setup_logger()
@@ -205,12 +207,20 @@ class QualiPoc(object):
     def safe_division(self, a, b):
         return a / b if b else 0.0
 
+    def map_rsrp(self, value):
+        return self.RSRP_MAPPING[value]
+
+    def normalize(self, fields):
+        return self.df[fields].apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
+
     def calculate_transfer_rate(self, data):
         # Add missing fields with zero padding
         data['Bytes Transferred Cycle'] = 0.0
         data['Duration'] = 0.0
         data['Duration Seconds'] = 0.0
         data['Bitrate'] = 0.0
+        data['Bytes Transferred Interval'] = 0.0
+        data['RSRP Mapping'] = 0.0
 
         # Local values
         prev_value = 0
@@ -235,9 +245,14 @@ class QualiPoc(object):
                 # If the the current bytes transferred is different, then add to total
                 # This is to prevent duplicate values found in the QualiPoc dataset
                 total += prev_value
+                # Register NaN and then check
+                data.at[i, 'Bytes Transferred Interval'] = prev_value
 
             # Set the total amount of transferred bytes to current total
             data.at[i, 'Bytes Transferred Cycle'] = total
+
+            # Map RSRP
+            data.at[i, 'RSRP Mapping'] = self.RSRP_MAPPING[np.floor(data.at[i, 'RSRP'])]
 
             # Calculate total duration (deltatime)
             data.at[i, 'Duration'] = data.at[i, "Time"] - start_time
@@ -289,12 +304,27 @@ class ColorFormatter(logging.Formatter):
 
 qp = QualiPoc(CSV_IN_FILEPATH)
 
-plot_data = qp.df[qp.df["Cycles"] == 2.0]
+#qp.df = qp.normalize(['Cycles', 'RSSI', 'RSRP', 'Bytes Transferred', 'Bitrate'])
+
+plot_data = qp.df[qp.df["Cycles"] >= 0]
+plot_data = qp.df[qp.df["Bitrate"] <= 150]
 #print(plot_data)
 
 qp.logger.info('Started plotting...')
 
-sns.regplot(x="RSSI", y="Bitrate", data=plot_data)
+sns.set(style="darkgrid", color_codes=True)
+
+plot_data = plot_data.dropna(axis=1, how='any')
+
+
+# PAIR
+#sns.pairplot(plot_data[['RSSI', 'RSRP', 'Bytes Transferred', 'Bitrate', 'RSRP Mapping']], kind="reg")#, dropna=True)
+#sns.pairplot(plot_data[['RSSI', 'RSRP', 'Bytes Transferred', 'Bitrate', 'RSRP Mapping']], diag_kind="kde", markers="+", diag_kws=dict(shade=True), plot_kws=dict(s=10, edgecolor="b", linewidth=1))#, dropna=True)
+sns.pairplot(plot_data[['RSSI', 'RSRP', 'Bytes Transferred', 'Bitrate', 'RSRP Mapping']], hue='RSRP Mapping', kind="reg")#, dropna=True)
+# HEX
+#sns.jointplot(x="RSRP Mapping", y="Bitrate", data=plot_data, kind="hex", stat_func=kendalltau, color="#4CB391", size=7)
+# REG
+#sns.jointplot(x="RSRP Mapping", y="Bitrate", data=plot_data, x_estimator=np.mean, kind="reg", color="r", size=7)
 
 qp.logger.info('Showing plot...')
 
