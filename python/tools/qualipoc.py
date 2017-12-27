@@ -6,11 +6,17 @@ import logging
 import sys
 import os
 
+from scipy import interpolate
 from scipy.stats import kendalltau
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import matplotlib.cm as cm
 import matplotlib.dates as mdates
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+
+from pandas.plotting import andrews_curves
 
 """
 https://www.laroccasolutions.com/164-rsrq-to-sinr/
@@ -20,9 +26,9 @@ script_path = os.path.dirname(os.path.abspath( __file__ ))
 # DTU 10MB / 1GB download
 #CSV_IN_FILEPATH = os.path.join(script_path, '../../data/2017-11-17-12-39-33-0000-5310-7746-0004-S.csv')
 # DTU 1GB download
-#CSV_IN_FILEPATH = os.path.join(script_path, '../../data/2017-11-27-14-07-44-0000-5310-7746-0004-S.csv')
+CSV_IN_FILEPATH = os.path.join(script_path, '../../data/2017-11-27-14-07-44-0000-5310-7746-0004-S.csv')
 # Lavensby 1GB download
-CSV_IN_FILEPATH = os.path.join(script_path, '../../data/2017-12-06-12-34-57-0000-5310-7746-0004-S.csv')
+#CSV_IN_FILEPATH = os.path.join(script_path, '../../data/2017-12-06-12-34-57-0000-5310-7746-0004-S.csv')
 CSV_OUT_FILEPATH = os.path.join(script_path, '../../data/measurement_data.csv')
 
 COLUMN_NAMES = {
@@ -363,8 +369,8 @@ def most_common(x):
 # TEST
 plot_data_copy = plot_data
 #f = {'Bytes Transferred': 'sum', 'Bitrate': mean_round, 'Cycles': mean_round, 'RSRP Mapping': mean_round, 'SINR Rx[0]': mean_round, 'SINR Rx[1]': mean_round}
-f = {'Bytes Transferred': 'sum', 'Bitrate': most_common, 'Cycles': most_common, 'RSRP Mapping': most_common, 'RSRQ': most_common, 'SINR Rx[0]': most_common, 'SINR Rx[1]': most_common}
-g = pd.TimeGrouper(freq='1Min')
+f = {'RSSI': most_common, 'RSRP': most_common, 'Bytes Transferred': 'sum', 'Bitrate': most_common, 'Cycles': most_common, 'RSRP Mapping': most_common, 'RSRQ': np.mean, 'SINR Rx[0]': most_common, 'SINR Rx[1]': np.mean}
+g = pd.TimeGrouper(freq='1S')
 plot_data_copy = plot_data_copy.set_index('Time').groupby(g).agg(f)
 print(plot_data_copy)
 plot_data_copy["Timestamp"] = plot_data_copy.index
@@ -372,14 +378,15 @@ plot_data_copy["Timestamp"] = plot_data_copy.index
 #print(plot_data['Cycles'])
 #sns.tsplot(data=plot_data_copy, time="Timestamp", unit="Bitrate", condition="Cycles", value="Bitrate")
 #sns.factorplot(y="Bytes Transferred", x="Bitrate", hue="RSRP Mapping", data=plot_data_copy, size=6, kind="bar", palette="muted")
-sns.jointplot(x="SINR Rx[0]", y="Bytes Transferred", data=plot_data_copy, x_estimator=np.mean, kind="reg", color="r", size=7)
+
+#sns.jointplot(x="SINR Rx[0]", y="Bytes Transferred", data=plot_data_copy, x_estimator=np.mean, kind="reg", color="r", size=7)
 
 # TIME SERIES
 #sns.barplot(x="Time", y="Bytes Transferred", data=plot_data, palette="Set3")
 #plot_data_deduplicate = plot_data[plot_data["Bytes Transferred Interval"] > 0]
 #sns.tsplot(data=plot_data_deduplicate['Bytes Transferred Interval'], time=plot_data_deduplicate['Time'])
 # BAR
-
+"""
 f, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(8, 6), sharex=True)
 #https://stackoverflow.com/questions/35168016/unable-to-plot-dataframe-using-seaborn-barplot
 
@@ -394,7 +401,7 @@ sns.barplot(x=plot_data_copy['Timestamp'], y=plot_data_copy["Bytes Transferred"]
 sns.barplot(x=plot_data_copy['Timestamp'], y=plot_data_copy["Bitrate"], color="g", ax=ax2)
 sns.barplot(x=plot_data_copy['Timestamp'], y=plot_data_copy["SINR Rx[0]"], color="b", ax=ax3)
 sns.barplot(x=plot_data_copy['Timestamp'], y=plot_data_copy["RSRQ"], color="y", ax=ax4)
-
+"""
 
 """
 def myFormatter(x, pos):
@@ -418,6 +425,107 @@ ax2.xaxis.set_major_formatter(formatter)
 
 
 #sns.jointplot(x="Bitrate", y="Bytes Transferred", data=plot_data, kind="reg", color="r", size=7)
+
+# DENSITY
+"""
+plot_data_copy_normalized = plot_data_copy#[['Cycles', 'RSSI', 'RSRP', 'RSRQ', 'SINR Rx[0]', 'SINR Rx[1]', 'Bytes Transferred', 'Bitrate']].apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
+sns.jointplot(plot_data_copy_normalized["Bytes Transferred"], plot_data_copy_normalized["SINR Rx[0]"], kind="kde", size=7, space=0)
+
+g = sns.PairGrid(plot_data_copy_normalized[['RSSI', 'RSRQ', 'SINR Rx[0]', 'Bytes Transferred']], diag_sharey=False)
+g.map_lower(sns.kdeplot, cmap="Blues_d")
+g.map_upper(plt.scatter)
+g.map_diag(sns.kdeplot, lw=3)
+"""
+
+#andrews_curves(plot_data_copy[['RSSI', 'RSRQ','SINR Rx[0]','RSRP Mapping']], 'RSRP Mapping')
+
+"""
+threedee = plt.figure().gca(projection='3d')
+threedee.scatter(plot_data_copy['RSSI'], plot_data_copy['Bitrate'], plot_data_copy['SINR Rx[0]'])
+threedee.set_xlabel('RSSI')
+threedee.set_ylabel('Bitrate')
+threedee.set_zlabel('SINR Rx[0]')
+"""
+
+
+fig = plt.figure()
+ax = Axes3D(fig)
+#plot_data_copy = plot_data_copy.interpolate(method='cubic')
+
+plot_data_copy_normalized = plot_data_copy[['Cycles', 'RSSI', 'RSRP', 'RSRQ', 'SINR Rx[0]', 'SINR Rx[1]', 'Bytes Transferred', 'Bitrate']].apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
+plot_data_normalized = plot_data[['Cycles', 'RSSI', 'RSRP', 'RSRQ', 'SINR Rx[0]', 'SINR Rx[1]', 'Bytes Transferred', 'Bitrate']].apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
+
+# https://stackoverflow.com/questions/35157650/smooth-surface-plot-with-pyplot
+xnew, ynew = np.mgrid[-1:1:80j, -1:1:80j]
+tck = interpolate.bisplrep(plot_data_copy_normalized['RSRQ'], plot_data_copy_normalized['SINR Rx[0]'], plot_data_copy_normalized['Bitrate'])
+znew = interpolate.bisplev(xnew[:,0], ynew[0,:], tck)
+
+#surf = ax.plot_surface(plot_data_copy['RSSI'], plot_data_copy['Bitrate'], plot_data_copy['SINR Rx[0]'], rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+#ax.plot_trisurf(plot_data_copy['RSSI'], plot_data_copy['SINR Rx[0]'], plot_data_copy['Bitrate'], cmap=cm.jet, linewidth=0.2)
+
+surf = ax.plot_surface(xnew, ynew, znew, cmap=cm.jet, rstride=1, cstride=1, alpha=None, antialiased=False)
+ax.set_xlabel('RSRQ')
+ax.set_ylabel('SINR Rx[0]')
+ax.set_zlabel('Bitrate')
+
+cbar = fig.colorbar(surf, shrink=0.5, aspect=5)
+#cbar.solids.set_antialiased(True)
+#cbar.solids.set(alpha=1)
+plt.title('Normalized 3D Mesh')
+
+
+"""
+fig = plt.figure()
+ax = Axes3D(fig)
+#plot_data_copy = plot_data_copy.interpolate(method='cubic')
+
+plot_data_copy_normalized = plot_data_copy[['Cycles', 'RSSI', 'RSRP', 'RSRQ', 'SINR Rx[0]', 'SINR Rx[1]', 'Bytes Transferred', 'Bitrate']].apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
+plot_data_normalized = plot_data[['Cycles', 'RSSI', 'RSRP', 'RSRQ', 'SINR Rx[0]', 'SINR Rx[1]', 'Bytes Transferred', 'Bitrate']].apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
+
+# https://stackoverflow.com/questions/35157650/smooth-surface-plot-with-pyplot
+xnew, ynew = np.mgrid[plot_data['RSSI'].min():plot_data['RSSI'].max():80j, plot_data['SINR Rx[0]'].min():plot_data['SINR Rx[0]'].max():80j]
+tck = interpolate.bisplrep(plot_data['RSSI'], plot_data['SINR Rx[0]'], plot_data['Bitrate'])
+#znew = interpolate.bisplev(xnew[:,0], ynew[0,:], tck)
+
+znew = interpolate.griddata((plot_data['RSSI'], plot_data['SINR Rx[0]']), plot_data['Bitrate'], (xnew, ynew), method='cubic')
+
+#surf = ax.plot_surface(plot_data_copy['RSSI'], plot_data_copy['Bitrate'], plot_data_copy['SINR Rx[0]'], rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+#ax.plot_trisurf(plot_data_copy['RSSI'], plot_data_copy['SINR Rx[0]'], plot_data_copy['Bitrate'], cmap=cm.jet, linewidth=0.2)
+
+surf = ax.plot_surface(xnew, ynew, znew, cmap=cm.jet, rstride=1, cstride=1, alpha=None, antialiased=True, vmin=plot_data['Bitrate'].min(), vmax=plot_data['Bitrate'].max())
+ax.set_xlabel('RSSI')
+ax.set_ylabel('SINR Rx[0]')
+ax.set_zlabel('Bitrate')
+
+fig.colorbar(surf, shrink=0.5, aspect=5)
+
+"""
+
+
+"""
+# 2D-arrays from DataFrame
+x1 = np.linspace(plot_data['RSSI'].min(), plot_data['RSSI'].max(), len(plot_data['RSSI'].unique()))
+y1 = np.linspace(plot_data['SINR Rx[0]'].min(), plot_data['SINR Rx[0]'].max(), len(plot_data['SINR Rx[0]'].unique()))
+
+x2, y2 = np.meshgrid(x1, y1)
+
+# Interpolate unstructured D-dimensional data.
+z2 = interpolate.griddata((plot_data['RSSI'], plot_data['SINR Rx[0]']), plot_data['Bitrate'], (x2, y2))
+
+# Ready to plot
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+surf = ax.plot_surface(x2, y2, z2, rstride=1, cstride=1, cmap=cm.coolwarm,
+                       linewidth=0, antialiased=False, vmin=plot_data['Bitrate'].min(), vmax=plot_data['Bitrate'].max())
+#ax.set_zlim(-1.01, 1.01)
+
+ax.zaxis.set_major_locator(LinearLocator(10))
+ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+
+fig.colorbar(surf, shrink=0.5, aspect=5)
+plt.title('Meshgrid Created from 3 1D Arrays')
+"""
+
 
 # Add new parameters
 # Implement SVM - kernel
