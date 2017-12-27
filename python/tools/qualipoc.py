@@ -2,18 +2,24 @@ import csv
 from datetime import datetime,timedelta
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
 import logging
 import sys
 
 from scipy.stats import kendalltau
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+import matplotlib.dates as mdates
 
+"""
+https://www.laroccasolutions.com/164-rsrq-to-sinr/
+"""
 
-
+# DTU 10MB / 1GB download
 #CSV_IN_FILEPATH = '../../data/2017-11-17-12-39-33-0000-5310-7746-0004-S.csv'
+# DTU 1GB download
 #CSV_IN_FILEPATH = '../../data/2017-11-27-14-07-44-0000-5310-7746-0004-S.csv'
+# Lavensby 1GB download
 CSV_IN_FILEPATH = '../../data/2017-12-06-12-34-57-0000-5310-7746-0004-S.csv'
 CSV_OUT_FILEPATH = '../../data/measurement_data.csv'
 
@@ -55,14 +61,14 @@ COLUMN_NAMES = {
     "RSRP",
     "RSRQ",
     "RSSI",
-    "SINR Rx[0]", # CHECK
-    "SINR Rx[1]", # CHECK
-    "RSRP Rx[0]",
-    "RSRQ Rx[0]", # CHECK
-    "RSSI Rx[0]",
-    "RSRP Rx[1]",
-    "RSRQ Rx[1]", # CHECK
-    "RSSI Rx[1]",
+    "SINR Rx[0]", # 37 CHECK
+    "SINR Rx[1]", # 38 CHECK
+    "RSRP Rx[0]", # 39
+    "RSRQ Rx[0]", # 40 CHECK
+    "RSSI Rx[0]", # 41
+    "RSRP Rx[1]", # 42
+    "RSRQ Rx[1]", # 43 CHECK
+    "RSSI Rx[1]", # 44
     "PCI", #45
     "DL EARFCN", #46
     "Bandwidth", #47
@@ -121,7 +127,9 @@ COLUMN_NAMES = {
     "Num NACKs",
 }
 
-USE_COLS = [0,1,2,3,4,7,9,10,24,31,45,46,47,61,65,74,76,91]
+#USE_COLS = [0,1,2,3,4,7,9,10,24,31,45,46,47,61,65,74,76,91]
+
+USE_COLS = [0,1,2,3,4,7,9,10,24,31,37,38,39,40,41,42,43,44,45,46,47,61,65,74,76,91]
 
 class QualiPoc(object):
 
@@ -159,7 +167,7 @@ class QualiPoc(object):
         # For tracking
         values_before_parsing = len(self.df)
         # Drop rows that include NaN value in specific columns
-        self.df = self.df.dropna(subset=['Cycles', 'RSSI', 'RSRP', 'RSRQ', 'Bytes Transferred'])
+        self.df = self.df.dropna(subset=['Cycles','SINR Rx[0]', 'SINR Rx[1]', 'RSSI', 'RSRP', 'RSRQ', 'Bytes Transferred'])
         # Ensure specific technology
         self.df = self.df[self.df["Data technology"] == 'LTE']
         # For tracking
@@ -304,11 +312,15 @@ class ColorFormatter(logging.Formatter):
 
 qp = QualiPoc(CSV_IN_FILEPATH)
 
-#qp.df = qp.normalize(['Cycles', 'RSSI', 'RSRP', 'Bytes Transferred', 'Bitrate'])
+#qp.df = qp.normalize(['Cycles', 'RSSI', 'RSRP', 'SINR Rx[0]', 'SINR Rx[1]', 'Bytes Transferred', 'Bitrate'])
 
 plot_data = qp.df[qp.df["Cycles"] >= 0]
-plot_data = qp.df[qp.df["Bitrate"] <= 150]
+plot_data = plot_data[plot_data["Bitrate"] <= 150]
+plot_data = plot_data[plot_data["Bitrate"] > 0]
+plot_data = plot_data[plot_data["Bytes Transferred"] > 0]
 #print(plot_data)
+
+#plot_data = plot_data[['Cycles', 'RSSI', 'RSRP', 'SINR Rx[0]', 'SINR Rx[1]', 'Bytes Transferred', 'Bitrate']].apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
 
 qp.logger.info('Started plotting...')
 
@@ -321,12 +333,60 @@ plot_data = plot_data.dropna(axis=1, how='any')
 #sns.pairplot(plot_data[['RSSI', 'RSRP', 'Bytes Transferred', 'Bitrate', 'RSRP Mapping']], kind="reg")#, dropna=True)
 #sns.pairplot(plot_data[['RSSI', 'RSRP', 'Bytes Transferred', 'Bitrate', 'RSRP Mapping']], diag_kind="kde", markers="+", diag_kws=dict(shade=True), plot_kws=dict(s=10, edgecolor="b", linewidth=1))#, dropna=True)
 #sns.pairplot(plot_data[['RSSI', 'RSRP', 'Bytes Transferred', 'Bitrate', 'RSRP Mapping']], hue='RSRP Mapping', kind="reg")#, dropna=True)
+
+#sns.pairplot(plot_data[['RSSI', 'RSRP','SINR Rx[0]', 'SINR Rx[1]', 'Bytes Transferred', 'Bitrate']], kind="reg")#, dropna=True)
+
 # HEX
 #sns.jointplot(x="RSRP Mapping", y="Bitrate", data=plot_data, kind="hex", stat_func=kendalltau, color="#4CB391", size=7)
 # REG
-sns.jointplot(x="RSRP Mapping", y="Bitrate", data=plot_data, x_estimator=np.mean, kind="reg", color="r", size=7)
-sns.jointplot(x="RSRP Mapping", y="Bytes Transferred", data=plot_data, x_estimator=np.mean, kind="reg", color="r", size=7)
-sns.jointplot(x="RSRP Mapping", y="Bytes Transferred", data=plot_data, x_estimator=np.mean, kind="reg", color="r", size=7)
+#sns.jointplot(x="RSRP Mapping", y="Bitrate", data=plot_data, x_estimator=np.mean, kind="reg", color="r", size=7)
+#sns.jointplot(x="RSRP Mapping", y="Bytes Transferred", data=plot_data, x_estimator=np.mean, kind="reg", color="r", size=7)
+#sns.jointplot(x="RSRP Mapping", y="Bytes Transferred", data=plot_data, x_estimator=np.mean, kind="reg", color="r", size=7)
+
+#sns.jointplot(x="SINR Rx[0]", y="Bytes Transferred", data=plot_data, x_estimator=np.mean, kind="reg", color="r", size=7)
+#sns.jointplot(x="SINR Rx[1]", y="Bytes Transferred", data=plot_data, x_estimator=np.mean, kind="reg", color="r", size=7)
+
+# BOX
+#sns.boxplot(data=plot_data[['RSSI', 'RSRP','SINR Rx[0]', 'SINR Rx[1]', 'Bytes Transferred', 'Bitrate']])
+#sns.boxplot(data=plot_data[['Bytes Transferred']])
+
+# TIME SERIES
+#sns.barplot(x="Time", y="Bytes Transferred", data=plot_data, palette="Set3")
+#plot_data_deduplicate = plot_data[plot_data["Bytes Transferred Interval"] > 0]
+#sns.tsplot(data=plot_data_deduplicate['Bytes Transferred Interval'], time=plot_data_deduplicate['Time'])
+# BAR
+f, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6), sharex=True)
+#https://stackoverflow.com/questions/35168016/unable-to-plot-dataframe-using-seaborn-barplot
+
+
+plot_data.set_index('Time', inplace=True)
+plot_data = plot_data.resample("1Min").sum()
+
+plot_data['Timestamp'] = [x.to_pydatetime().strftime("%H:%M:%S") for x in plot_data.index]
+print(plot_data['Timestamp'])
+
+sns.barplot(x=plot_data['Timestamp'], y=plot_data["Bytes Transferred"], color="r", ax=ax1)
+sns.barplot(x=plot_data['Timestamp'], y=plot_data["Bitrate"], color="r", ax=ax2)
+
+
+def myFormatter(x, pos):
+    return x+1
+
+#ax2.xaxis.set_major_locator(mdates.AutoDateLocator())
+#ax1.xaxis.set_major_formatter(mpl.ticker.FuncFormatter(myFormatter))
+#ax2.xaxis.set_major_formatter(mpl.ticker.FuncFormatter(myFormatter))
+
+#date_fmt = '%H:%M:%S'
+
+#formatter = mdates.DateFormatter(date_fmt)
+#ax2.plot_date(plot_data['Timestamp'], plot_data["Bitrate"])
+#ax2.xaxis.set_major_formatter(formatter)
+
+
+#sns.tsplot(time="Time", unit="Bytes Transferred", data=[plot_data[["Time", "Bytes Transferred"]]])
+#sns.factorplot(y="Bytes Transferred", data=plot_data, palette="BuPu", size=6, aspect=1.5)
+
+#sns.jointplot(x="Bitrate", y="Bytes Transferred", data=plot_data, kind="reg", color="r", size=7)
 
 # Add new parameters
 # Implement SVM - kernel
