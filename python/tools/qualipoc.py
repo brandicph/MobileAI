@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import logging
 import sys
+import os
 
 from scipy.stats import kendalltau
 import seaborn as sns
@@ -15,13 +16,14 @@ import matplotlib.dates as mdates
 https://www.laroccasolutions.com/164-rsrq-to-sinr/
 """
 
+script_path = os.path.dirname(os.path.abspath( __file__ ))
 # DTU 10MB / 1GB download
-#CSV_IN_FILEPATH = '../../data/2017-11-17-12-39-33-0000-5310-7746-0004-S.csv'
+#CSV_IN_FILEPATH = os.path.join(script_path, '../../data/2017-11-17-12-39-33-0000-5310-7746-0004-S.csv')
 # DTU 1GB download
-#CSV_IN_FILEPATH = '../../data/2017-11-27-14-07-44-0000-5310-7746-0004-S.csv'
+#CSV_IN_FILEPATH = os.path.join(script_path, '../../data/2017-11-27-14-07-44-0000-5310-7746-0004-S.csv')
 # Lavensby 1GB download
-CSV_IN_FILEPATH = '../../data/2017-12-06-12-34-57-0000-5310-7746-0004-S.csv'
-CSV_OUT_FILEPATH = '../../data/measurement_data.csv'
+CSV_IN_FILEPATH = os.path.join(script_path, '../../data/2017-12-06-12-34-57-0000-5310-7746-0004-S.csv')
+CSV_OUT_FILEPATH = os.path.join(script_path, '../../data/measurement_data.csv')
 
 COLUMN_NAMES = {
     "Time", #0
@@ -350,41 +352,70 @@ plot_data = plot_data.dropna(axis=1, how='any')
 #sns.boxplot(data=plot_data[['RSSI', 'RSRP','SINR Rx[0]', 'SINR Rx[1]', 'Bytes Transferred', 'Bitrate']])
 #sns.boxplot(data=plot_data[['Bytes Transferred']])
 
+def mean_round(x):
+    return round(np.mean(x))
+
+def most_common(x):
+    (values,counts) = np.unique(x,return_counts=True)
+    ind = np.argmax(counts)
+    return values[ind]
+
+# TEST
+plot_data_copy = plot_data
+#f = {'Bytes Transferred': 'sum', 'Bitrate': mean_round, 'Cycles': mean_round, 'RSRP Mapping': mean_round, 'SINR Rx[0]': mean_round, 'SINR Rx[1]': mean_round}
+f = {'Bytes Transferred': 'sum', 'Bitrate': most_common, 'Cycles': most_common, 'RSRP Mapping': most_common, 'RSRQ': most_common, 'SINR Rx[0]': most_common, 'SINR Rx[1]': most_common}
+g = pd.TimeGrouper(freq='1Min')
+plot_data_copy = plot_data_copy.set_index('Time').groupby(g).agg(f)
+print(plot_data_copy)
+plot_data_copy["Timestamp"] = plot_data_copy.index
+
+#print(plot_data['Cycles'])
+#sns.tsplot(data=plot_data_copy, time="Timestamp", unit="Bitrate", condition="Cycles", value="Bitrate")
+#sns.factorplot(y="Bytes Transferred", x="Bitrate", hue="RSRP Mapping", data=plot_data_copy, size=6, kind="bar", palette="muted")
+sns.jointplot(x="SINR Rx[0]", y="Bytes Transferred", data=plot_data_copy, x_estimator=np.mean, kind="reg", color="r", size=7)
+
 # TIME SERIES
 #sns.barplot(x="Time", y="Bytes Transferred", data=plot_data, palette="Set3")
 #plot_data_deduplicate = plot_data[plot_data["Bytes Transferred Interval"] > 0]
 #sns.tsplot(data=plot_data_deduplicate['Bytes Transferred Interval'], time=plot_data_deduplicate['Time'])
 # BAR
-f, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6), sharex=True)
+
+f, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(8, 6), sharex=True)
 #https://stackoverflow.com/questions/35168016/unable-to-plot-dataframe-using-seaborn-barplot
 
 
-plot_data.set_index('Time', inplace=True)
-plot_data = plot_data.resample("1Min").sum()
+#plot_data.set_index('Time', inplace=True)
+#plot_data = plot_data.resample("1Min").sum()
 
-plot_data['Timestamp'] = [x.to_pydatetime().strftime("%H:%M:%S") for x in plot_data.index]
-print(plot_data['Timestamp'])
+plot_data_copy['Timestamp'] = [x.to_pydatetime().strftime("%H:%M:%S") for x in plot_data_copy.index]
+#print(plot_data['Timestamp'])
 
-sns.barplot(x=plot_data['Timestamp'], y=plot_data["Bytes Transferred"], color="r", ax=ax1)
-sns.barplot(x=plot_data['Timestamp'], y=plot_data["Bitrate"], color="r", ax=ax2)
+sns.barplot(x=plot_data_copy['Timestamp'], y=plot_data_copy["Bytes Transferred"], color="r", ax=ax1)
+sns.barplot(x=plot_data_copy['Timestamp'], y=plot_data_copy["Bitrate"], color="g", ax=ax2)
+sns.barplot(x=plot_data_copy['Timestamp'], y=plot_data_copy["SINR Rx[0]"], color="b", ax=ax3)
+sns.barplot(x=plot_data_copy['Timestamp'], y=plot_data_copy["RSRQ"], color="y", ax=ax4)
 
 
+"""
 def myFormatter(x, pos):
     return x+1
 
-#ax2.xaxis.set_major_locator(mdates.AutoDateLocator())
-#ax1.xaxis.set_major_formatter(mpl.ticker.FuncFormatter(myFormatter))
-#ax2.xaxis.set_major_formatter(mpl.ticker.FuncFormatter(myFormatter))
+"ax2.xaxis.set_major_locator(mdates.AutoDateLocator())
+ax1.xaxis.set_major_formatter(mpl.ticker.FuncFormatter(myFormatter))
+ax2.xaxis.set_major_formatter(mpl.ticker.FuncFormatter(myFormatter))
+"""
 
-#date_fmt = '%H:%M:%S'
+"""
+date_fmt = '%H:%M:%S'
 
-#formatter = mdates.DateFormatter(date_fmt)
-#ax2.plot_date(plot_data['Timestamp'], plot_data["Bitrate"])
-#ax2.xaxis.set_major_formatter(formatter)
-
+formatter = mdates.DateFormatter(date_fmt)
+ax2.plot_date(plot_data['Timestamp'], plot_data["Bitrate"])
+ax2.xaxis.set_major_formatter(formatter)
+"""
 
 #sns.tsplot(time="Time", unit="Bytes Transferred", data=[plot_data[["Time", "Bytes Transferred"]]])
 #sns.factorplot(y="Bytes Transferred", data=plot_data, palette="BuPu", size=6, aspect=1.5)
+
 
 #sns.jointplot(x="Bitrate", y="Bytes Transferred", data=plot_data, kind="reg", color="r", size=7)
 
