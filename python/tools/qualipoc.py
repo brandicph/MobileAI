@@ -55,13 +55,13 @@ COLUMN_NAMES = {
     "RSRP",
     "RSRQ",
     "RSSI",
-    "SINR Rx[0]",
-    "SINR Rx[1]",
+    "SINR Rx[0]", # CHECK
+    "SINR Rx[1]", # CHECK
     "RSRP Rx[0]",
-    "RSRQ Rx[0]",
+    "RSRQ Rx[0]", # CHECK
     "RSSI Rx[0]",
     "RSRP Rx[1]",
-    "RSRQ Rx[1]",
+    "RSRQ Rx[1]", # CHECK
     "RSSI Rx[1]",
     "PCI", #45
     "DL EARFCN", #46
@@ -318,14 +318,19 @@ plot_data = plot_data.dropna(axis=1, how='any')
 
 
 # PAIR
-sns.pairplot(plot_data[['RSSI', 'RSRP', 'Bytes Transferred', 'Bitrate', 'RSRP Mapping']], kind="reg")#, dropna=True)
-sns.pairplot(plot_data[['RSSI', 'RSRP', 'Bytes Transferred', 'Bitrate', 'RSRP Mapping']], diag_kind="kde", markers="+", diag_kws=dict(shade=True), plot_kws=dict(s=10, edgecolor="b", linewidth=1))#, dropna=True)
-sns.pairplot(plot_data[['RSSI', 'RSRP', 'Bytes Transferred', 'Bitrate', 'RSRP Mapping']], hue='RSRP Mapping', kind="reg")#, dropna=True)
+#sns.pairplot(plot_data[['RSSI', 'RSRP', 'Bytes Transferred', 'Bitrate', 'RSRP Mapping']], kind="reg")#, dropna=True)
+#sns.pairplot(plot_data[['RSSI', 'RSRP', 'Bytes Transferred', 'Bitrate', 'RSRP Mapping']], diag_kind="kde", markers="+", diag_kws=dict(shade=True), plot_kws=dict(s=10, edgecolor="b", linewidth=1))#, dropna=True)
+#sns.pairplot(plot_data[['RSSI', 'RSRP', 'Bytes Transferred', 'Bitrate', 'RSRP Mapping']], hue='RSRP Mapping', kind="reg")#, dropna=True)
 # HEX
 #sns.jointplot(x="RSRP Mapping", y="Bitrate", data=plot_data, kind="hex", stat_func=kendalltau, color="#4CB391", size=7)
 # REG
 sns.jointplot(x="RSRP Mapping", y="Bitrate", data=plot_data, x_estimator=np.mean, kind="reg", color="r", size=7)
 sns.jointplot(x="RSRP Mapping", y="Bytes Transferred", data=plot_data, x_estimator=np.mean, kind="reg", color="r", size=7)
+sns.jointplot(x="RSRP Mapping", y="Bytes Transferred", data=plot_data, x_estimator=np.mean, kind="reg", color="r", size=7)
+
+# Add new parameters
+# Implement SVM - kernel
+# Gauss process
 
 qp.logger.info('Showing plot...')
 
