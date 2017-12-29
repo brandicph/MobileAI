@@ -2,12 +2,29 @@ import numpy as np
 from numpy import linalg
 import cvxopt
 import cvxopt.solvers
+import inspect
+from sklearn.metrics import confusion_matrix, classification_report
+import seaborn as sns
+import pandas as pd
+import matplotlib.pyplot as plt
 
 """
 Original: aHR0cHM6Ly9naXN0LmdpdGh1Yi5jb20vbWJsb25kZWwvNTg2NzUz
 Raw: aHR0cHM6Ly9naXN0LmdpdGh1YnVzZXJjb250ZW50LmNvbS9tYmxvbmRlbC81ODY3NTMvcmF3LzZlMGMyYWMzMTYwYWI1YTcwNjhiNmYwZDM5ZjJlMDZiOTdlYjBmMmIvc3ZtLnB5
+Art: aHR0cHM6Ly9weXRob25wcm9ncmFtbWluZy5uZXQvc29mdC1tYXJnaW4ta2VybmVsLWN2eG9wdC1zdm0tbWFjaGluZS1sZWFybmluZy10dXRvcmlhbC8=
+
+https://github.com/soloice/SVM-python
+https://github.com/AFAgarap/support-vector-machine
+http://sdsawtelle.github.io/blog/output/week7-andrew-ng-machine-learning-with-python.html
+
+http://web.mit.edu/6.034/wwwbob/svm-notes-long-08.pdf
 
 http://crsouza.com/2010/03/17/kernel-functions-for-machine-learning-applications/
+https://gist.github.com/WittmannF/60680723ed8dd0cb993051a7448f7805
+
+https://github.com/gmum/pykernels
+
+http://cvxopt.org/applications/svm/
 
 http://www.cs.toronto.edu/~duvenaud/cookbook/
 https://en.wikipedia.org/wiki/Kernel_(statistics)
@@ -32,7 +49,7 @@ Abel's Theorem: https://en.wikipedia.org/wiki/Abel%27s_theorem
 class Kernels(object):
 
     @staticmethod
-    def Linear(x1, x2):
+    def Linear(x, y, c=0.0):
         """Linear Kernel
 
         The Linear kernel is the simplest kernel function. It is given by the inner
@@ -44,10 +61,10 @@ class Kernels(object):
 
         Reference:
         """
-        return np.dot(x1, x2)
+        return np.dot(x, y) + c
 
     @staticmethod
-    def Polynomial(x, y, dimension=3, offset=1.0):
+    def Polynomial(x, y, d=3, c=1.0):
         """Inhomogeneous Polynomial Kernel
 
         The Polynomial kernel is a non-stationary kernel. Polynomial kernels are
@@ -56,16 +73,16 @@ class Kernels(object):
         k(x, y) = (alpha x^T y + c)^d 
         
         Adjustable parameters are the slope alpha, the constant term c and the
-        polynomial degree d. When alpha = 0, the kernel is called homogeneuos.
+        polynomial degree d. When c = 0, the kernel is called homogeneuos.
 
         Reference: https://en.wikipedia.org/wiki/Polynomial_kernel
         """
-        return (np.dot(x, y) + offset) ** dimension
+        return (np.dot(x, y) + c) ** d
 
     @staticmethod
-    def PolynomialHomogeneuos(x, y, dimension=3):
+    def PolynomialHomogeneuos(x, y, d=3):
         """Homogeneous Polynomial Kernel"""
-        return Kernels.Polynomial(x, y, dimension=dimension, offset=0.0)
+        return Kernels.Polynomial(x, y, d, 0.0)
 
     @staticmethod
     def Gaussian(x, y, sigma=5.0):
@@ -210,6 +227,17 @@ class SVM(object):
         if self.C is not None: self.C = float(self.C)
 
     def fit(self, X, y):
+        """Fit model
+        Support vector machine training using matrix completion technique.
+
+        The basic idea is to replace the dense kernel matrix with the
+        maximum determinant positive definite completion of a subset of
+        the entries of the kernel matrix. The resulting approximate kernel
+        matrix has a sparse inverse and this property can be exploited to
+        dramatically improve the efficiency of interior-point methods
+
+        URL: http://www.seas.ucla.edu/~vandenbe/publications/svmcmpl.pdf
+        """
         n_samples, n_features = X.shape
 
         # Gram matrix
@@ -227,6 +255,7 @@ class SVM(object):
             G = cvxopt.matrix(np.diag(np.ones(n_samples) * -1))
             h = cvxopt.matrix(np.zeros(n_samples))
         else:
+            # Soft
             tmp1 = np.diag(np.ones(n_samples) * -1)
             tmp2 = np.identity(n_samples)
             G = cvxopt.matrix(np.vstack((tmp1, tmp2)))
@@ -393,126 +422,41 @@ if __name__ == "__main__":
         pl.axis("tight")
         pl.show()
 
-    def test_linear():
-        X1, y1, X2, y2 = gen_lin_separable_data()
-        X_train, y_train = split_train(X1, y1, X2, y2)
-        X_test, y_test = split_test(X1, y1, X2, y2)
-
-        clf = SVM()
-        clf.fit(X_train, y_train)
-
-        y_predict = clf.predict(X_test)
-        correct = np.sum(y_predict == y_test)
-        print("%d out of %d predictions correct" % (correct, len(y_predict)))
-
-        plot_margin(X_train[y_train==1], X_train[y_train==-1], clf)
-
-    def test_non_linear():
-        X1, y1, X2, y2 = gen_non_lin_separable_data()
-        X_train, y_train = split_train(X1, y1, X2, y2)
-        X_test, y_test = split_test(X1, y1, X2, y2)
-
-        clf = SVM(Kernels.Gaussian)
-        clf.fit(X_train, y_train)
-
-        y_predict = clf.predict(X_test)
-        correct = np.sum(y_predict == y_test)
-        print("%d out of %d predictions correct" % (correct, len(y_predict)))
-
-        plot_contour(X_train[y_train==1], X_train[y_train==-1], clf)
-
-    def test_hyperbolic_tangent():
-        X1, y1, X2, y2 = gen_discrete_separable_data()
-        X_train, y_train = split_train(X1, y1, X2, y2)
-        X_test, y_test = split_test(X1, y1, X2, y2)
-
-        clf = SVM(Kernels.Sigmoid)
-        clf.fit(X_train, y_train)
-
-        y_predict = clf.predict(X_test)
-        correct = np.sum(y_predict == y_test)
-        print("%d out of %d predictions correct" % (correct, len(y_predict)))
-
-        plot_contour(X_train[y_train==1], X_train[y_train==-1], clf)
-
-    def test_inhomogeneous_polynomial():
-        X1, y1, X2, y2 = gen_non_lin_separable_data()
-        X_train, y_train = split_train(X1, y1, X2, y2)
-        X_test, y_test = split_test(X1, y1, X2, y2)
-
-        clf = SVM(Kernels.Polynomial)
-        clf.fit(X_train, y_train)
-
-        y_predict = clf.predict(X_test)
-        correct = np.sum(y_predict == y_test)
-        print("%d out of %d predictions correct" % (correct, len(y_predict)))
-
-        plot_contour(X_train[y_train==1], X_train[y_train==-1], clf)
-
-    def test_homogeneous_polynomial():
-        X1, y1, X2, y2 = gen_lin_separable_data()
-        X_train, y_train = split_train(X1, y1, X2, y2)
-        X_test, y_test = split_test(X1, y1, X2, y2)
-
-        clf = SVM(Kernels.PolynomialHomogeneuos)
-        clf.fit(X_train, y_train)
-
-        y_predict = clf.predict(X_test)
-        correct = np.sum(y_predict == y_test)
-        print("%d out of %d predictions correct" % (correct, len(y_predict)))
-
-        plot_contour(X_train[y_train==1], X_train[y_train==-1], clf)
-
-    def test_radial_basis():
-        X1, y1, X2, y2 = gen_non_lin_separable_data()
-        X_train, y_train = split_train(X1, y1, X2, y2)
-        X_test, y_test = split_test(X1, y1, X2, y2)
-
-        clf = SVM(Kernels.RBF)
-        clf.fit(X_train, y_train)
-
-        y_predict = clf.predict(X_test)
-        correct = np.sum(y_predict == y_test)
-        print("%d out of %d predictions correct" % (correct, len(y_predict)))
-
-        plot_contour(X_train[y_train==1], X_train[y_train==-1], clf)
-
-    def test_soft():
-        X1, y1, X2, y2 = gen_lin_separable_overlap_data()
-        X_train, y_train = split_train(X1, y1, X2, y2)
-        X_test, y_test = split_test(X1, y1, X2, y2)
-
-        clf = SVM(C=0.1)
-        clf.fit(X_train, y_train)
-
-        y_predict = clf.predict(X_test)
-        correct = np.sum(y_predict == y_test)
-        print("%d out of %d predictions correct" % (correct, len(y_predict)))
-
-        plot_contour(X_train[y_train==1], X_train[y_train==-1], clf)
-
-    def test_specific(kernel=Kernels.Linear, data=gen_lin_separable_data):
+    def test_specific(kernel=Kernels.Linear, data=gen_lin_separable_data, C=None):
         X1, y1, X2, y2 = data()
         X_train, y_train = split_train(X1, y1, X2, y2)
         X_test, y_test = split_test(X1, y1, X2, y2)
 
-        clf = SVM(kernel)
+        clf = SVM(kernel, C=C)
         clf.fit(X_train, y_train)
 
         y_predict = clf.predict(X_test)
         correct = np.sum(y_predict == y_test)
+
+        cr = classification_report(y_test, y_predict)
+        cm = confusion_matrix(y_test, y_predict)
+        
+        print("\n\nClassification report for classifier %s:\n%s\n" % (clf, cr))
+
+        print("Confusion matrix:\n%s" % cm)
+
         print("%d out of %d predictions correct" % (correct, len(y_predict)))
 
+        classes = ["1","0"]
+        df_cm = pd.DataFrame(cm, index=classes, columns=classes)
+        plt.figure()
+        sns.heatmap(df_cm, annot=True, cmap="Reds")
+        plt.show(block=False)
+
+        plt.figure()
         plot_contour(X_train[y_train==1], X_train[y_train==-1], clf)
+ 
 
-    #test_linear()
-    #test_soft()
-    #test_non_linear()
-    #test_radial_basis()
-    #test_hyperbolic_tangent()
-    #test_homogeneous_polynomial()
-    #test_inhomogeneous_polynomial()
-
+    #test_specific(kernel=Kernels.Linear, data=gen_lin_separable_data)
+    #test_specific(kernel=Kernels.Linear, data=gen_lin_separable_data, C=1.0)
+    #test_specific(kernel=Kernels.Polynomial, data=gen_non_lin_separable_data)
+    #test_specific(kernel=Kernels.Gaussian, data=gen_non_lin_separable_data)
+    #test_specific(kernel=Kernels.Sigmoid, data=gen_discrete_separable_data)
     #test_specific(kernel=Kernels.RationalQuadratic, data=gen_non_lin_separable_data)
     #test_specific(kernel=Kernels.MultiQuadric, data=gen_non_lin_separable_data)
-    test_specific(kernel=Kernels.InverseMultiQuadric, data=gen_discrete_separable_data)
+    test_specific(kernel=Kernels.InverseMultiQuadric, data=gen_non_lin_separable_data)
