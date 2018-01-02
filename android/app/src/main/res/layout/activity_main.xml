@@ -5,6 +5,19 @@
     android:paddingLeft="0dp"
     android:paddingRight="0dp"
     android:orientation="vertical" >
+
+    <ProgressBar
+        android:id="@+id/downloadProgress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/downloadBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Download file" />
+
     <ScrollView
         android:id="@+id/scroller"
         android:layout_width="fill_parent"
@@ -21,12 +34,14 @@
             android:enabled="false"
             android:focusable="true"
             android:focusableInTouchMode="false"
+            android:fontFamily="monospace"
             android:freezesText="true"
+            android:gravity="bottom"
             android:inputType="textMultiLine"
             android:isScrollContainer="true"
             android:scrollbars="vertical"
-            android:gravity="bottom"
-            android:text="" >
+            android:text=""
+            android:textColor="#000000">
 
             <requestFocus />
         </TextView>
