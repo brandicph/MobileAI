@@ -19,6 +19,8 @@ https://github.com/soloice/SVM-python
 https://github.com/AFAgarap/support-vector-machine
 http://sdsawtelle.github.io/blog/output/week7-andrew-ng-machine-learning-with-python.html
 
+https://jakevdp.github.io/PythonDataScienceHandbook/05.07-support-vector-machines.html
+
 http://web.mit.edu/6.034/wwwbob/svm-notes-long-08.pdf
 
 http://crsouza.com/2010/03/17/kernel-functions-for-machine-learning-applications/
@@ -457,8 +459,8 @@ if __name__ == "__main__":
     #test_specific(kernel=Kernels.Linear, data=gen_lin_separable_data)
     #test_specific(kernel=Kernels.Linear, data=gen_lin_separable_data, C=1.0)
     #test_specific(kernel=Kernels.Polynomial, data=gen_non_lin_separable_data)
-    #test_specific(kernel=Kernels.Gaussian, data=gen_non_lin_separable_data)
-    test_specific(kernel=Kernels.Sigmoid, data=gen_discrete_separable_data)
+    test_specific(kernel=Kernels.Gaussian, data=gen_non_lin_separable_data)
+    #test_specific(kernel=Kernels.Sigmoid, data=gen_discrete_separable_data)
     #test_specific(kernel=Kernels.RationalQuadratic, data=gen_non_lin_separable_data)
     #test_specific(kernel=Kernels.MultiQuadric, data=gen_non_lin_separable_data)
     #test_specific(kernel=Kernels.InverseMultiQuadric, data=gen_non_lin_separable_data)
