@@ -74,6 +74,7 @@ qp.logger.info("Before filtering: {} samples".format(n_samples_before_filtering)
 fields = ['Intermediate KPI', 'RSRP']
 X_fields = ['RSRP']
 y_fields = ['Intermediate KPI']
+#qp.df = qp.normalize(fields, overwrite=True)
 #df = qp.df.dropna(subset=['Intermediate KPI', 'SINR Rx[0]', 'SINR Rx[1]'])
 df = qp.df.dropna(subset=fields)
 
