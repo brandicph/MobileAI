@@ -20,7 +20,7 @@ import matplotlib as mpl
 
 from sklearn.cross_validation import cross_val_score, cross_val_predict
 from sklearn import metrics
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, GridSearchCV
 
 from qp import QualiPoc
 mpl.style.use('seaborn')
@@ -66,10 +66,18 @@ qp = QualiPoc(CSV_IN_FILEPATH)
 # Perform filtering
 n_samples_before_filtering = len(qp.df)
 qp.logger.info("Before filtering: {} samples".format(n_samples_before_filtering))
+#fields = ['Intermediate KPI', 'RSRP Rx[0]']
+#X_fields = ['RSRP Rx[0]']
+#fields = ['Intermediate KPI', 'RSRP', 'RSRQ', 'RSSI', 'Average MCS Index']
+#X_fields = ['RSRP','RSRQ', 'RSSI', 'Average MCS Index']
+#y_fields = ['Intermediate KPI']
+fields = ['Intermediate KPI', 'RSRP']
+X_fields = ['RSRP']
+y_fields = ['Intermediate KPI']
 #df = qp.df.dropna(subset=['Intermediate KPI', 'SINR Rx[0]', 'SINR Rx[1]'])
-df = qp.df.dropna(subset=['Intermediate KPI', 'RSRP'])
+df = qp.df.dropna(subset=fields)
 
-#df = df[df['Intermediate KPI'] < 200]
+df = df[df['Intermediate KPI'] > 0]
 #df = df[df['SINR Rx[0]'] > 0]
 n_samples_after_filtering = len(df)
 qp.logger.info("After filtering: {} samples".format(n_samples_after_filtering))
@@ -82,40 +90,64 @@ rolling_window = 100
 #df_rolling = df[['SINR Rx[0]', 'RSRP Rx[0]', 'SINR Rx[1]', 'RSRP Rx[1]', 'Intermediate KPI']].rolling(rolling_window).sum() / rolling_window
 #df_rolling = df_rolling.dropna(subset=['Intermediate KPI', 'SINR Rx[0]', 'SINR Rx[1]'])
 
-df_rolling = df[['RSRP', 'Intermediate KPI']].rolling(rolling_window).sum() / rolling_window
-df_rolling = df_rolling.dropna(subset=['Intermediate KPI', 'RSRP'])
-df_rolling = df_rolling.sort_values(by=['RSRP'])
-df_rolling = df_rolling[::10]
+#df = df.groupby('Time').agg({"Intermediate KPI": np.mean, "RSRP": lambda x: x.nunique()})
+df_rolling = df[fields].rolling(rolling_window).sum() / rolling_window
+df_rolling = df_rolling.dropna(subset=fields)
+df_rolling = df_rolling.sort_values(by=X_fields)
+df_rolling = df_rolling[::5]
+
 
 n_samples_after_rolling = len(df_rolling)
 qp.logger.info("After rolling: {} samples".format(n_samples_after_rolling))
 
 
-#X = np.sort(df_rolling[['RSRP Rx[0]']].values, axis=0)
-X = df_rolling[['RSRP']].values
-y = df_rolling[['Intermediate KPI']].values.ravel()
+X = df_rolling[X_fields].values
+y = df_rolling[y_fields].values.ravel()
 
 # ############################################################################
 # KFold
-"""
-kf = KFold(n_splits=2) # Define the split - into 2 folds 
+
+kf = KFold(n_splits=2,shuffle=True) # Define the split - into 2 folds 
 
 print(kf)
 
 for train_index, test_index in kf.split(X):
     #print("TRAIN:", train_index, "TEST:", test_index)
-    X_train, X_test = X[train_index], X[test_index]
-    y_train, y_test = y[train_index], y[test_index]
+    X_train, X_test = X[train_index], X[test_index[::]]
+    y_train, y_test = y[train_index], y[test_index[::]]
     print("New fold: ", X_train.shape)
 
-    clf = SVR(kernel='rbf', C=1e3, gamma=1)
-    clf.fit(X_train, y_train)
+    clf = SVR(kernel='rbf', C=1e3, gamma=0.01)
+    #clf = GridSearchCV(SVR(kernel='rbf', gamma=0.1), cv=5, param_grid={"C": [1e0, 1e1, 1e2, 1e3], "gamma": np.logspace(-2, 2, 5)})
+    clf = clf.fit(X_train, y_train)
 
     y_predict = clf.predict(X_test)
-    correct = np.sum(abs(y_predict-y_test) < abs(y_predict) * 0.10)
+    errors = np.abs(y_predict-y_test)/np.abs(y_test)
+    error_avg = np.mean(errors)
+    error_max = np.max(errors)
+    error_min = np.min(errors)
+    #mse = np.mean((y_test - y_predict)**2)
+    print('Mean error', error_avg)
+    print('Min error', error_min)
+    print('Max error', error_max)
+    #print('Mean square error', mse)
+    correct = np.sum(errors <= 0.05)
 
-    print("%d out of %d predictions correct" % (correct, len(y_predict)))
-"""
+    print("%d out of %d (%.4f) predictions correct" % (correct, len(y_predict), correct/len(y_predict)))
+
+    plt.scatter(X_train, y_train, color='darkorange', label='data')
+    plt.plot(X_train, clf.predict(X_train), color='navy', lw=2, label='RBF train')
+    plt.scatter(X_test, y_test, color='green', marker='+', label='RBF test')
+    plt.scatter(X_test, y_predict, color='purple', marker='+', label='RBF predict')
+    #plt.plot(X, y_lin, color='c', lw=lw, label='Linear model')
+    #plt.plot(X, y_poly, color='cornflowerblue', lw=lw, label='Polynomial model')
+    plt.xlabel('data')
+    plt.ylabel('target')
+    plt.title('Support Vector Regression')
+    plt.legend()
+    plt.show()
+    quit()
+
 
 # #############################################################################
 # Fit regression model
