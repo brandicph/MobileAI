@@ -20,7 +20,9 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from pandas.plotting import andrews_curves
 
 """
+http://web.cecs.pdx.edu/~fli/class/LTE_Reource_Guide.pdf
 https://www.laroccasolutions.com/164-rsrq-to-sinr/
+http://rfmw.em.keysight.com/wireless/helpfiles/89600b/webhelp/subsystems/lte/content/lte_overview.htm
 """
 
 SCRIPT_PATH = os.path.dirname(os.path.abspath( __file__ ))

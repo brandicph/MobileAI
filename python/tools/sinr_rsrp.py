@@ -24,8 +24,9 @@ mpl.style.use('seaborn')
 
 # CSV file path
 SCRIPT_PATH = os.path.dirname(os.path.abspath( __file__ ))
-CSV_IN_FILEPATH = os.path.join(SCRIPT_PATH, '../../data/2018-01-06-08-55-34-0000-5310-7746-0004-S_ping_B.csv')
-
+#CSV_IN_FILEPATH = os.path.join(SCRIPT_PATH, '../../data/2018-01-06-08-55-34-0000-5310-7746-0004-S_ping_B.csv')
+# Airport Ping
+CSV_IN_FILEPATH = os.path.join(SCRIPT_PATH, '../../data/2018-01-06-16-27-25-0000-5310-7746-0004-S_airport_ping2.csv')
 # Instatiate data reader
 qp = QualiPoc(CSV_IN_FILEPATH)
 
@@ -34,7 +35,7 @@ n_samples_before_filtering = len(qp.df)
 qp.logger.info("Before filtering: {} samples".format(n_samples_before_filtering))
 df = qp.df.dropna(subset=['Intermediate KPI', 'SINR Rx[0]', 'SINR Rx[1]'])
 
-df = df[df['Intermediate KPI'] > 0]
+df = df#[df['Intermediate KPI'] > 0]
 n_samples_after_filtering = len(df)
 qp.logger.info("After filtering: {} samples".format(n_samples_after_filtering))
 
