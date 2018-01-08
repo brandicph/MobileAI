@@ -7,6 +7,8 @@ from sklearn.metrics import confusion_matrix, classification_report
 import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+mpl.style.use('seaborn')
 
 """
 Original: aHR0cHM6Ly9naXN0LmdpdGh1Yi5jb20vbWJsb25kZWwvNTg2NzUz
@@ -408,9 +410,9 @@ if __name__ == "__main__":
         pl.show()
 
     def plot_contour(X1_train, X2_train, clf):
-        pl.plot(X1_train[:,0], X1_train[:,1], "ro")
-        pl.plot(X2_train[:,0], X2_train[:,1], "bo")
-        pl.scatter(clf.sv[:,0], clf.sv[:,1], s=100, c="g")
+        pl.plot(X1_train[:,0], X1_train[:,1], 'o', color='#4C72B0')
+        pl.plot(X2_train[:,0], X2_train[:,1], 'o', color='#55A868')
+        pl.scatter(clf.sv[:,0], clf.sv[:,1], s=100, c="#C44E52")
 
         X1, X2 = np.meshgrid(np.linspace(-6,6,50), np.linspace(-6,6,50))
         X = np.array([[x1, x2] for x1, x2 in zip(np.ravel(X1), np.ravel(X2))])
@@ -445,7 +447,7 @@ if __name__ == "__main__":
         classes = ["1","0"]
         df_cm = pd.DataFrame(cm, index=classes, columns=classes)
         plt.figure()
-        sns.heatmap(df_cm, annot=True, cmap="Reds")
+        sns.heatmap(df_cm, annot=True, cmap="RdYlBu_r") #cmap="PuBuGn"
         plt.show(block=False)
 
         plt.figure()
@@ -456,7 +458,7 @@ if __name__ == "__main__":
     #test_specific(kernel=Kernels.Linear, data=gen_lin_separable_data, C=1.0)
     #test_specific(kernel=Kernels.Polynomial, data=gen_non_lin_separable_data)
     #test_specific(kernel=Kernels.Gaussian, data=gen_non_lin_separable_data)
-    #test_specific(kernel=Kernels.Sigmoid, data=gen_discrete_separable_data)
+    test_specific(kernel=Kernels.Sigmoid, data=gen_discrete_separable_data)
     #test_specific(kernel=Kernels.RationalQuadratic, data=gen_non_lin_separable_data)
     #test_specific(kernel=Kernels.MultiQuadric, data=gen_non_lin_separable_data)
-    test_specific(kernel=Kernels.InverseMultiQuadric, data=gen_non_lin_separable_data)
+    #test_specific(kernel=Kernels.InverseMultiQuadric, data=gen_non_lin_separable_data)
