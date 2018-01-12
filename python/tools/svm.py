@@ -2,6 +2,7 @@ import numpy as np
 from numpy import linalg
 import cvxopt
 import cvxopt.solvers
+from openopt import QP
 import inspect
 from sklearn.metrics import confusion_matrix, classification_report
 import seaborn as sns
@@ -9,6 +10,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.style.use('seaborn')
+import math
 
 """
 Original: aHR0cHM6Ly9naXN0LmdpdGh1Yi5jb20vbWJsb25kZWwvNTg2NzUz
@@ -18,6 +20,8 @@ Art: aHR0cHM6Ly9weXRob25wcm9ncmFtbWluZy5uZXQvc29mdC1tYXJnaW4ta2VybmVsLWN2eG9wdC1
 https://github.com/soloice/SVM-python
 https://github.com/AFAgarap/support-vector-machine
 http://sdsawtelle.github.io/blog/output/week7-andrew-ng-machine-learning-with-python.html
+
+https://github.com/claesenm/optunity/blob/master/bin/examples/python/sklearn/svr.py
 
 https://jakevdp.github.io/PythonDataScienceHandbook/05.07-support-vector-machines.html
 
@@ -297,6 +301,11 @@ class SVM(object):
             self.w = None
 
     def project(self, X):
+        """
+            w=m∑i=1 αi yi,xi
+            F(x)=∑i αi yi xi·x−b 
+            F(x)=∑i αi yi K(xi,x)−b
+        """
         if self.w is not None:
             return np.dot(X, self.w) + self.b
         else:
@@ -307,6 +316,143 @@ class SVM(object):
                     s += a * sv_y * self.kernel(X[i], sv)
                 y_predict[i] = s
             return y_predict + self.b
+
+    def project_reg(self, X):
+        """
+            w=m∑i=1 αi yi,xi
+            F(x)=∑i αi yi xi·x−b 
+            F(x)=∑i αi yi K(xi,x)−b
+        """
+        if self.w is not None:
+            return np.dot(X, self.w) + self.b
+        else:
+            y_predict = np.zeros(len(X))
+            for i in range(len(X)):
+                s = 0
+                for a, sv_y, sv in zip(self.a, self.sv_y, self.sv):
+                    s += ((a*-0.05) - a) * sv_y * self.kernel(X[i], sv)
+                y_predict[i] = s
+            return y_predict + self.b
+    """
+    def fit_reg(self,X, y):
+        n_samples, n_features = X.shape
+
+        # Gram matrix
+        K = np.zeros((n_samples, n_samples))
+        for i in range(n_samples):
+            for j in range(n_samples):
+                K[i,j] = self.kernel(X[i], X[j])
+
+        P = cvxopt.matrix(np.outer(y,y) * K)
+        q = cvxopt.matrix(np.ones(n_samples) * -1)
+        A = cvxopt.matrix(y, (1,n_samples))
+        b = cvxopt.matrix(0.0)
+
+        if self.C is None:
+            G = cvxopt.matrix(np.diag(np.ones(n_samples) * -1))
+            h = cvxopt.matrix(np.zeros(n_samples))
+        else:
+            # Soft
+            tmp1 = np.diag(np.ones(n_samples) * -1)
+            tmp2 = np.identity(n_samples)
+            G = cvxopt.matrix(np.vstack((tmp1, tmp2)))
+            tmp1 = np.zeros(n_samples)
+            tmp2 = np.ones(n_samples) * self.C
+            h = cvxopt.matrix(np.hstack((tmp1, tmp2)))
+
+        # solve QP problem
+        solution = cvxopt.solvers.qp(P, q, G, h, A, b)
+
+        # Lagrange multipliers
+        a = np.ravel(solution['x'])
+
+        # Support vectors have non zero lagrange multipliers
+        self.sv = []
+        self.sv_y = []
+        self.a = []
+
+        #support vectors: points such that an-an' ! = 0
+        for i in range(n_samples):
+            if not((self.a[i]-a[n_samples+i])==0):
+                self.sv.append(X[i])
+                self.sv_y.append(Y[i])
+                self.a.append(a[i]-a[n_samples+i])
+
+        self.b = 0
+        for n in range(len(self.a)):
+            self.b += self.sv_y[n]
+            self.b -= np.sum(self.a * self.sv_y * K[ind[n],sv])
+        self.b /= len(self.a)
+    """
+    #------------------------------------------------------------------------------------------------------------
+    def product(self,a,X,x):
+        prod=0.0
+        for i in range(len(a)):
+            prod=prod+a[i]*self.kernel(X[i],x)
+        return prod
+
+    def kernel_value(self, x,y):
+        a=math.exp(-1*abs(x-y)**2)
+        return a
+    #-------------------------------------------------------------------------------------------------------------
+
+    def fit_reg(self, X, y, eps=0.5):
+        n_samples, n_features = X.shape
+
+        # Gram matrix
+        K = np.zeros((n_samples, n_samples))
+        for i in range(n_samples):
+            for j in range(n_samples):
+                K[i,j] = self.kernel(X[i], X[j])
+
+        P = cvxopt.matrix(np.outer(y,y) * K)
+        q = cvxopt.matrix(np.ones(n_samples) * -1)
+        A = cvxopt.matrix(y, (1,n_samples))
+        b = cvxopt.matrix(0.0)
+
+        if self.C is None:
+            G = cvxopt.matrix(np.diag(np.ones(n_samples) * -1))
+            h = cvxopt.matrix(np.zeros(n_samples))
+        else:
+            # Soft
+            tmp1 = np.diag(np.ones(n_samples) * -1)
+            tmp2 = np.identity(n_samples)
+            G = cvxopt.matrix(np.vstack((tmp1, tmp2)))
+            tmp1 = np.zeros(n_samples)
+            tmp2 = np.ones(n_samples) * self.C
+            h = cvxopt.matrix(np.hstack((tmp1, tmp2)))
+
+        # solve QP problem
+        solution = cvxopt.solvers.qp(P, q, G, h, A, b)
+
+        # Lagrange multipliers
+        a = np.ravel(solution['x'])
+
+        # Support vectors have non zero lagrange multipliers
+        sv = a > 1e-5
+        ind = np.arange(len(a))[sv]
+        self.a = a[sv]
+        self.sv = X[sv]
+        self.sv_y = y[sv]
+        print("%d support vectors out of %d points" % (len(self.a), n_samples))
+
+        # Intercept
+        self.b = 0
+        for n in range(len(self.a)):
+            self.b += self.sv_y[n]
+            self.b -= np.sum(self.a * self.sv_y * K[ind[n],sv])
+        self.b /= len(self.a)
+
+        # Weight vector
+        if self.kernel == Kernels.Linear:
+            self.w = np.zeros(n_features)
+            for n in range(len(self.a)):
+                self.w += (self.a[n] - self.a[n]) * self.sv_y[n] * self.sv[n]
+        else:
+            self.w = None
+
+    def predict_reg(self, X):
+        return self.project_reg(X)
 
     def predict(self, X):
         return np.sign(self.project(X))
@@ -323,6 +469,21 @@ if __name__ == "__main__":
         y1 = np.ones(len(X1))
         X2 = np.random.multivariate_normal(mean2, cov, 100)
         y2 = np.ones(len(X2)) * -1
+        return X1, y1, X2, y2
+
+    def gen_lin_separable_data_reg():
+        # generate training data in the 2-d case
+        mean1 = np.array([0, 2])
+        mean2 = np.array([2, 0])
+        cov = np.array([[0.8, 0.6], [0.6, 0.8]])
+        X1 = np.random.multivariate_normal(mean1, cov, 100)
+        y1 = np.random.rand(len(X1)) * 1
+        X2 = np.random.multivariate_normal(mean2, cov, 100)
+        y2 = np.random.rand(len(X2)) * -1
+        print('X1', X1)
+        print('X2', X2)
+        print('y1', y1)
+        print('y2', y2)
         return X1, y1, X2, y2
 
     def gen_discrete_separable_data():
@@ -454,12 +615,44 @@ if __name__ == "__main__":
 
         plt.figure()
         plot_contour(X_train[y_train==1], X_train[y_train==-1], clf)
+
+    def test_specific_reg(kernel=Kernels.Linear, data=gen_lin_separable_data_reg, C=None):
+        X1, y1, X2, y2 = data()
+        X_train, y_train = split_train(X1, y1, X2, y2)
+        X_test, y_test = split_test(X1, y1, X2, y2)
+
+        clf = SVM(kernel, C=C)
+        clf.fit_reg(X_train, y_train)
+
+        y_predict = clf.predict_reg(X_test)
+
+        print('y_test', y_test)
+        print('y_predict', y_predict)
+
+        plt.figure()
+        plot_contour(X_train[y_train > 0], X_train[y_train < 0], clf)
  
+    def gen_dummy_data():
+        tot_values=350
+        mean=0
+        variance=0.5
+        lower_limit=0
+        upper_limit=10
+        y=[]
+        X=[]
+        X.append(lower_limit)
+        for i in range(tot_values-1):
+            X.append(X[-1]+float(upper_limit-lower_limit)/tot_values)
+        for i in X:
+            y.append(math.sin(float(i))+np.random.normal(mean,variance))
+
+        return X, y, X, y
 
     #test_specific(kernel=Kernels.Linear, data=gen_lin_separable_data)
     #test_specific(kernel=Kernels.Linear, data=gen_lin_separable_data, C=1.0)
     #test_specific(kernel=Kernels.Polynomial, data=gen_non_lin_separable_data)
-    test_specific(kernel=Kernels.Gaussian, data=gen_non_lin_separable_data)
+    #test_specific(kernel=Kernels.Gaussian, data=gen_non_lin_separable_data)
+    test_specific_reg(kernel=Kernels.Polynomial, data=gen_lin_separable_data_reg, C=100)
     #test_specific(kernel=Kernels.Sigmoid, data=gen_discrete_separable_data)
     #test_specific(kernel=Kernels.RationalQuadratic, data=gen_non_lin_separable_data)
     #test_specific(kernel=Kernels.MultiQuadric, data=gen_non_lin_separable_data)
