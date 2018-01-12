@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.cm as cm
 import matplotlib.dates as mdates
+import statsmodels
+from matplotlib2tikz import save as tikz_save
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
@@ -97,24 +99,61 @@ plot_data = plot_data[plot_data['Intermediate KPI'] > 20000]
 
 cmap = mpl.colors.ListedColormap(['#cc5155', '#C44E52', '#873638', '#602527'])
 
+
+pgf_with_custom_preamble = {
+    "font.family": 'serif',
+    "font.serif": 'Times, Palatino, New Century Schoolbook, Bookman, Computer Modern Roman',
+    "font.sans-serif": 'Helvetica, Avant Garde, Computer Modern Sans serif',
+    "font.cursive": 'Zapf Chancery',
+    "font.monospace": 'Courier, Computer Modern Typewriter',
+    "text.usetex": True,
+    "text.dvipnghack": True
+}
+mpl.rcParams.update(pgf_with_custom_preamble)
+
+
+plot_data.rename(columns={
+    'RSRP Rx[0]': r'RSRP $Rx_0$',
+    'RSRP Rx[1]': r'RSRP $Rx_1$',
+    'SINR Rx[0]': r'SINR $Rx_0$',
+    'SINR Rx[1]': r'SINR $Rx_1$',
+}, inplace=True)
+
 sns.set_context("notebook", rc={"lines.linewidth": 1})
 g = sns.PairGrid(plot_data)
 g = g.map_lower(sns.regplot, color="#C44E52", marker='+', scatter_kws=dict(s=15), line_kws=dict(lw=2, color="black"))
 g = g.map_upper(sns.kdeplot, cmap=cmap, shade=False, shade_lowest=False)
 g = g.map_diag(sns.kdeplot, legend=False, shade=True, color="black")
-
 #sns.pairplot(plot_data, kind='reg', diag_kind="kde", markers="+", diag_kws=dict(shade=True, ))#, dropna=True)
-plt.show(block=True)
-sns.jointplot(x="RSRP Rx[0]", y="Intermediate KPI", data=plot_data, x_estimator=np.mean, kind="reg", color='#C44E52', size=7)
 plt.show(block=False)
 
+g.savefig("pairplot_sinr_rsrp_kpi.pdf")
 
+g = sns.PairGrid(plot_data[[r'SINR $Rx_0$', r'RSRP $Rx_0$', 'Intermediate KPI']])
+g = g.map_lower(sns.regplot, color="#C44E52", marker='+', scatter_kws=dict(s=15), line_kws=dict(lw=2, color="black"))
+g = g.map_upper(sns.kdeplot, cmap=cmap, shade=False, shade_lowest=False)
+g = g.map_diag(sns.kdeplot, legend=False, shade=True, color="black")
+#sns.pairplot(plot_data, kind='reg', diag_kind="kde", markers="+", diag_kws=dict(shade=True, ))#, dropna=True)
+plt.show(block=False)
+g.savefig("pairplot_sinr0_rsrp0_kpi.pdf")
+
+jointplot001 = sns.jointplot(x=r'RSRP $Rx_0$', y="Intermediate KPI", data=plot_data, x_estimator=np.mean, kind="reg", color='#C44E52', size=7, scatter_kws=dict(s=15), line_kws=dict(lw=2, color="black"))
+plt.show(block=False)
+jointplot001.savefig("jointplot_rsrp0_kpi.pdf")
+
+jointplot002 = sns.jointplot(x=r'RSRP $Rx_1$', y="Intermediate KPI", data=plot_data, x_estimator=np.mean, kind="reg", color='#C44E52', size=7, scatter_kws=dict(s=15), line_kws=dict(lw=2, color="black"))
+plt.show(block=True)
+jointplot002.savefig("jointplot_rsrp1_kpi.pdf")
+
+
+"""
 plot_data2 = df_rolling[['SINR Rx[0]', 'SINR Rx[1]', 'RSRP Rx[1]', 'RSRP Rx[0]','Intermediate KPI']][::5]
 plot_data2 = plot_data2[plot_data2['Intermediate KPI'] < 40000]
 
-sns.jointplot(x="RSRP Rx[0]", y="Intermediate KPI", data=plot_data2, kind="reg", color='#4C72B0', size=7)
+sns.jointplot(x="RSRP Rx[0]", y="Intermediate KPI", data=plot_data2, kind="reg", color='#4C72B0', size=7, line_kws=dict(lw=2, color="black"))
 
 plt.show()
+"""
 
 """
 msk = np.random.rand(len(df_rolling)) < 0.8
