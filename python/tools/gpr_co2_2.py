@@ -161,16 +161,28 @@ print("Log-marginal-likelihood: %.3f"
 X_ = np.linspace(X.min(), X.max() * 1.10, 1000)[:, np.newaxis]
 y_pred, y_std = gp.predict(X_, return_std=True)
 
+
+pgf_with_custom_preamble = {
+    "font.family": 'serif',
+    "font.serif": 'Times, Palatino, New Century Schoolbook, Bookman, Computer Modern Roman',
+    "font.sans-serif": 'Helvetica, Avant Garde, Computer Modern Sans serif',
+    "font.cursive": 'Zapf Chancery',
+    "font.monospace": 'Courier, Computer Modern Typewriter',
+    "text.usetex": True,
+    "text.dvipnghack": True
+}
+mpl.rcParams.update(pgf_with_custom_preamble)
+
 # Illustration
 plt.scatter(X, y, c='black', marker='+', label=u'Observations', alpha=0.5)
-plt.plot(original['RSRP Rx[0]'], original['Intermediate KPI'], color='black', alpha=0.2, label=u'Throughput')
+plt.plot(original['RSRP Rx[0]'], original['Intermediate KPI'], color='black', alpha=0.2, label=u'Original')
 plt.plot(X_, y_pred, c='#C44E52', label=u'Prediction')
 plt.fill_between(X_[:, 0], y_pred - y_std, y_pred + y_std,
                  alpha=0.2, color='#C44E52', label='Confidence interval')#color='#C44E52')
 plt.xlim(X_.min(), X_.max())
-plt.xlabel("Measurement")
-plt.ylabel("KPI")
-plt.title("Gaussian Process (GPML)")
+plt.xlabel("RSRP")
+plt.ylabel("Throughput")
+plt.title("Gaussian Process (GPML)\n- normalized -")
 plt.legend(loc='upper left')
 plt.tight_layout()
 plt.show()

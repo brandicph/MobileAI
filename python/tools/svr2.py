@@ -92,9 +92,9 @@ rolling_window = 100
 #df_rolling = df_rolling.dropna(subset=['Intermediate KPI', 'SINR Rx[0]', 'SINR Rx[1]'])
 
 #df = df.groupby('Time').agg({"Intermediate KPI": np.mean, "RSRP": lambda x: x.nunique()})
+df = df.sort_values(by=X_fields)
 df_rolling = df[fields].rolling(rolling_window).sum() / rolling_window
 df_rolling = df_rolling.dropna(subset=fields)
-df_rolling = df_rolling.sort_values(by=X_fields)
 df_rolling = df_rolling[::5]
 
 
@@ -111,6 +111,17 @@ y = df_rolling[y_fields].values.ravel()
 kf = KFold(n_splits=2,shuffle=True) # Define the split - into 2 folds 
 
 print(kf)
+
+pgf_with_custom_preamble = {
+    "font.family": 'serif',
+    "font.serif": 'Times, Palatino, New Century Schoolbook, Bookman, Computer Modern Roman',
+    "font.sans-serif": 'Helvetica, Avant Garde, Computer Modern Sans serif',
+    "font.cursive": 'Zapf Chancery',
+    "font.monospace": 'Courier, Computer Modern Typewriter',
+    "text.usetex": True,
+    "text.dvipnghack": True
+}
+mpl.rcParams.update(pgf_with_custom_preamble)
 
 for train_index, test_index in kf.split(X):
     #print("TRAIN:", train_index, "TEST:", test_index)
@@ -136,14 +147,14 @@ for train_index, test_index in kf.split(X):
 
     print("%d out of %d (%.4f) predictions correct" % (correct, len(y_predict), correct/len(y_predict)))
 
-    plt.scatter(X_train, y_train, color='darkorange', label='data')
-    plt.plot(X_train, clf.predict(X_train), color='navy', lw=2, label='RBF train')
-    plt.scatter(X_test, y_test, color='green', marker='+', label='RBF test')
-    plt.scatter(X_test, y_predict, color='purple', marker='+', label='RBF predict')
+    #plt.scatter(X_train, y_train, color='black', alpha=0.5, label='data')
+    plt.plot(X_train, clf.predict(X_train), color='black', lw=2, label='RBF model')
+    plt.plot(X_test, y_test, color='black', alpha=0.5, label='RBF test')
+    plt.scatter(X_test, y_predict, color='#C44E52', marker='+', label='RBF predict')
     #plt.plot(X, y_lin, color='c', lw=lw, label='Linear model')
     #plt.plot(X, y_poly, color='cornflowerblue', lw=lw, label='Polynomial model')
-    plt.xlabel('data')
-    plt.ylabel('target')
+    plt.xlabel('RSRP (dBm)')
+    plt.ylabel('Throughput (kbps)')
     plt.title('Support Vector Regression')
     plt.legend()
     plt.show()
@@ -162,12 +173,12 @@ y_rbf = svr_rbf.fit(X, y).predict(X)
 # #############################################################################
 # Look at the results
 lw = 2
-plt.scatter(X, y, color='darkorange', label='data')
-plt.plot(X, y_rbf, color='navy', lw=lw, label='RBF model')
+plt.scatter(X, y, color='black', label='Data')
+plt.plot(X, y_rbf, color='#C44E52', lw=lw, label='RBF model')
 #plt.plot(X, y_lin, color='c', lw=lw, label='Linear model')
 #plt.plot(X, y_poly, color='cornflowerblue', lw=lw, label='Polynomial model')
-plt.xlabel('data')
-plt.ylabel('target')
+plt.xlabel('RSRP')
+plt.ylabel('Throughput')
 plt.title('Support Vector Regression')
 plt.legend()
 plt.show()
