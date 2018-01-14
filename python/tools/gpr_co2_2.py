@@ -52,10 +52,11 @@ CSV_IN_FILEPATH = os.path.join(SCRIPT_PATH, '../../data/2017-11-27-14-07-44-0000
 # Instatiate data reader
 qp = QualiPoc(CSV_IN_FILEPATH)
 
+original = qp.df
+
 # Perform filtering
 n_samples_before_filtering = len(qp.df)
 qp.logger.info("Before filtering: {} samples".format(n_samples_before_filtering))
-fields = ['Intermediate KPI', 'RSRP Rx[0]']
 X_fields = ['RSRP Rx[0]']
 #fields = ['Intermediate KPI', 'RSRP', 'RSRQ', 'RSSI', 'Average MCS Index']
 #X_fields = ['RSRP','RSRQ', 'RSSI', 'Average MCS Index']
@@ -63,12 +64,20 @@ X_fields = ['RSRP Rx[0]']
 #fields = ['Intermediate KPI', 'RSRP']
 #X_fields = ['RSRP']
 y_fields = ['Intermediate KPI']
+fields = X_fields + y_fields
 #df = qp.df.dropna(subset=['Intermediate KPI', 'SINR Rx[0]', 'SINR Rx[1]'])
-qp.df = qp.normalize(fields, overwrite=True)
+qp.df = qp.df#.sort_values(by=X_fields)
+#qp.df = qp.normalize(fields, overwrite=True)
 
 df = qp.df.dropna(subset=fields)
+df = df.sort_values(by=X_fields)
 
-df = df[df['Intermediate KPI'] > 20000]
+
+df = df[df['Intermediate KPI'] > 0]
+
+#df = df.groupby('Intermediate KPI').agg({"Intermediate KPI": np.mean, "RSRP Rx[0]": lambda x: x.nunique()})
+#df = df.groupby('Time').agg({"Intermediate KPI": np.mean, "RSRP Rx[0]": lambda x: x})
+#df = df.groupby('Time').agg({"RSRP Rx[0]": lambda x: x.nunique(),  "Intermediate KPI": lambda x: x})
 #df = df[df['SINR Rx[0]'] > 0]
 n_samples_after_filtering = len(df)
 qp.logger.info("After filtering: {} samples".format(n_samples_after_filtering))
@@ -77,15 +86,26 @@ qp.logger.info("After filtering: {} samples".format(n_samples_after_filtering))
 #df = df[::5]
 
 # Perform rolling mean
-rolling_window = 15
+rolling_window = 20
 df_rolling = df[fields].rolling(rolling_window).sum() / rolling_window
 df_rolling = df_rolling.dropna(subset=fields)
 
-#df = df.groupby('Time').agg({"Intermediate KPI": np.mean, "RSRP": lambda x: x.nunique()})
+
+rolling_window_original = 5
+original = original[fields].dropna(subset=fields)
+original = original.sort_values(by=X_fields)
+original = original.rolling(rolling_window_original).sum() / rolling_window_original
+bla = original
+original = original.apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
+original = original[::]
+
 #df_rolling = df[fields].rolling(rolling_window).sum() / rolling_window
 #df_rolling = df_rolling.dropna(subset=fields)
-#df_rolling = df_rolling.sort_values(by=X_fields)
-df_rolling = df_rolling[::2]
+
+df_rolling = df_rolling[::rolling_window]
+
+df_rolling = df_rolling.apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
+
 
 
 n_samples_after_rolling = len(df_rolling)
@@ -106,8 +126,12 @@ k4 = 0.18**2 * RBF(length_scale=0.134) \
     + WhiteKernel(noise_level=0.19**2)  # noise terms
 kernel_gpml = k1 + k2 + k3 + k4
 
-gp = GaussianProcessRegressor(kernel=kernel_gpml, alpha=0,
-                              optimizer=None, normalize_y=True)
+gp = GaussianProcessRegressor(kernel=kernel_gpml, alpha=0, optimizer=None, normalize_y=True)
+#gp = GaussianProcessRegressor(kernel=kernel_gpml, alpha=0, normalize_y=True)
+
+#kernel_gpml = ConstantKernel(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
+#gp = GaussianProcessRegressor(kernel=kernel_gpml, n_restarts_optimizer=9)
+
 gp.fit(X, y)
 
 print("GPML kernel: %s" % gp.kernel_)
@@ -138,13 +162,15 @@ X_ = np.linspace(X.min(), X.max() * 1.10, 1000)[:, np.newaxis]
 y_pred, y_std = gp.predict(X_, return_std=True)
 
 # Illustration
-plt.scatter(X, y, c='#55A868')
-plt.plot(X_, y_pred, c='#4C72B0')
+plt.scatter(X, y, c='black', marker='+', label=u'Observations', alpha=0.5)
+plt.plot(original['RSRP Rx[0]'], original['Intermediate KPI'], color='black', alpha=0.2, label=u'Throughput')
+plt.plot(X_, y_pred, c='#C44E52', label=u'Prediction')
 plt.fill_between(X_[:, 0], y_pred - y_std, y_pred + y_std,
-                 alpha=0.2, color='#8172B2')#color='#C44E52')
+                 alpha=0.2, color='#C44E52', label='Confidence interval')#color='#C44E52')
 plt.xlim(X_.min(), X_.max())
 plt.xlabel("Measurement")
 plt.ylabel("KPI")
 plt.title("Gaussian Process (GPML)")
+plt.legend(loc='upper left')
 plt.tight_layout()
 plt.show()
