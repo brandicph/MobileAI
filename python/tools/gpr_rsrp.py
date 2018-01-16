@@ -6,7 +6,7 @@ import logging
 import sys
 import os
 
-from scipy import interpolate
+from scipy import interpolate, fft
 from scipy.stats import kendalltau
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -52,8 +52,6 @@ CSV_IN_FILEPATH = os.path.join(SCRIPT_PATH, '../../data/2017-11-27-14-07-44-0000
 # Instatiate data reader
 qp = QualiPoc(CSV_IN_FILEPATH)
 
-original = qp.df
-
 # Perform filtering
 n_samples_before_filtering = len(qp.df)
 qp.logger.info("Before filtering: {} samples".format(n_samples_before_filtering))
@@ -66,14 +64,39 @@ X_fields = ['RSRP Rx[0]']
 y_fields = ['Intermediate KPI']
 fields = X_fields + y_fields
 #df = qp.df.dropna(subset=['Intermediate KPI', 'SINR Rx[0]', 'SINR Rx[1]'])
-qp.df = qp.df#.sort_values(by=X_fields)
+qp.df = qp.df[:2000].sort_values(by=X_fields)
+qp.df = qp.df.dropna(subset=fields)
+qp.df = qp.df[qp.df['Intermediate KPI'] > 0]
+original = qp.df
+df = qp.df
 #qp.df = qp.normalize(fields, overwrite=True)
 
-df = qp.df.dropna(subset=fields)
-df = df.sort_values(by=X_fields)
+"""
+def plotSpectrum(y,Fs):
+    #Plots a Single-Sided Amplitude Spectrum of y(t)
+    n = len(y) # length of the signal
+    k = np.arange(n)
+    T = n/Fs
+    frq = k/T # two sides frequency range
+    frq = frq[range(n/2)] # one side frequency range
 
+    Y = scipy.fft(y)/n # fft computing and normalization
+    Y = Y[range(n/2)]
 
-df = df[df['Intermediate KPI'] > 0]
+    plt.plot(frq,abs(Y),'r') # plotting the spectrum
+    plt.xlabel('Freq (Hz)')
+    plt.ylabel('|Y(freq)|')
+
+Fs = 150.0;  # sampling rate
+Ts = 1.0/Fs; # sampling interval
+t = np.arange(0,1,Ts) # time vector
+
+ff = 5;   # frequency of the signal
+y = qp.df['RSRP Rx[0]'].values
+
+plotSpectrum(y,Fs)
+plt.show()
+"""
 
 #df = df.groupby('Intermediate KPI').agg({"Intermediate KPI": np.mean, "RSRP Rx[0]": lambda x: x.nunique()})
 #df = df.groupby('Time').agg({"Intermediate KPI": np.mean, "RSRP Rx[0]": lambda x: x})
@@ -82,18 +105,21 @@ df = df[df['Intermediate KPI'] > 0]
 n_samples_after_filtering = len(df)
 qp.logger.info("After filtering: {} samples".format(n_samples_after_filtering))
 
-#df = df[0:500]
+
 #df = df[::5]
 
 # Perform rolling mean
-rolling_window = 20
+rolling_window = 2
 df_rolling = df[fields].rolling(rolling_window).sum() / rolling_window
 df_rolling = df_rolling.dropna(subset=fields)
 
+df_rolling = df_rolling[::rolling_window]
+df_rolling = df_rolling.apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
 
-rolling_window_original = 5
+# Normal
+rolling_window_original = 2
 original = original[fields].dropna(subset=fields)
-original = original.sort_values(by=X_fields)
+#original = original.sort_values(by=X_fields)
 original = original.rolling(rolling_window_original).sum() / rolling_window_original
 bla = original
 original = original.apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
@@ -102,9 +128,7 @@ original = original[::]
 #df_rolling = df[fields].rolling(rolling_window).sum() / rolling_window
 #df_rolling = df_rolling.dropna(subset=fields)
 
-df_rolling = df_rolling[::rolling_window]
 
-df_rolling = df_rolling.apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
 
 
 
@@ -126,7 +150,7 @@ k4 = 0.18**2 * RBF(length_scale=0.134) \
     + WhiteKernel(noise_level=0.19**2)  # noise terms
 kernel_gpml = k1 + k2 + k3 + k4
 
-gp = GaussianProcessRegressor(kernel=kernel_gpml, alpha=0, optimizer=None, normalize_y=True)
+gp = GaussianProcessRegressor(kernel=kernel_gpml, alpha=0, optimizer=None, normalize_y=True, n_restarts_optimizer=2)
 #gp = GaussianProcessRegressor(kernel=kernel_gpml, alpha=0, normalize_y=True)
 
 #kernel_gpml = ConstantKernel(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
@@ -134,6 +158,9 @@ gp = GaussianProcessRegressor(kernel=kernel_gpml, alpha=0, optimizer=None, norma
 
 gp.fit(X, y)
 
+
+# 5.4 Model Selection for GP Regression (p112 - p124)
+# http://www.gaussianprocess.org/gpml/chapters/RW.pdf
 print("GPML kernel: %s" % gp.kernel_)
 print("Log-marginal-likelihood: %.3f"
       % gp.log_marginal_likelihood(gp.kernel_.theta))
