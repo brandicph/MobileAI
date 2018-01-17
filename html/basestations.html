@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Heatmaps</title>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?libraries=visualization&callback=initMap"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <style>
+    /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+
+    #map {
+        height: 100%;
+    }
+    /* Optional: Makes the sample page fill the window. */
+
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    #floating-panel {
+        position: absolute;
+        top: 10px;
+        left: 25%;
+        z-index: 5;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+        text-align: center;
+        font-family: 'Roboto', 'sans-serif';
+        line-height: 30px;
+        padding-left: 10px;
+    }
+
+    #floating-panel {
+        background-color: #fff;
+        border: 1px solid #999;
+        left: 25%;
+        padding: 5px;
+        position: absolute;
+        top: 10px;
+        z-index: 5;
+    }
+
+    #floating-scale {
+        background-color: #fff;
+        border: 2px solid #FFF;
+        box-shadow: 0px 0px 5px #999;
+        height: 300px;
+        width: 25px;
+        right: 10px;
+        padding: 5px;
+        position: absolute;
+        top: 25vh;
+        z-index: 5;
+    }
+
+    #floating-scale > * {
+        font-family: 'Roboto', 'sans-serif';
+        color: #FFF;
+        font-size: 12px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    #floating-scale > .high {
+        position: absolute;
+        top: 10px;
+        left:3px;
+    }
+
+    #floating-scale > .low {
+        position: absolute;
+        bottom: 10px;
+        left:5px;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="floating-panel">
+        <button onclick="toggleHeatmap()">Toggle Heatmap</button>
+        <button onclick="changeGradient()">Change gradient</button>
+        <button onclick="changeRadius()">Change radius</button>
+        <button onclick="changeOpacity()">Change opacity</button>
+    </div>
+    <div id="floating-scale">
+        <div class="high">HIGH</div>
+        <div class="low">LOW</div>
+    </div>
+    <div id="map"></div>
+    <script>
+    // This example requires the Visualization library. Include the libraries=visualization
+    // parameter when you first load the API. For example:
+    // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=visualization">
+
+    var map, heatmap;
+
+    function getData(latitude,longitude,radius,max,service,technology,callback){
+        $.ajax({
+          dataType: "jsonp",
+          url: `http://mastedatabasen.dk/Master/antenner/${latitude},${longitude},${radius}.json?tjenesteart=${service}&teknologi=${technology}&maxantal=${max}`,
+          async: false,
+          success: function(data){
+            callback.call(this, data)
+          }
+        });
+    }
+
+    function initMap() {
+        console.log('Setup map');
+        map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 10,
+            center: { lat: 55.693382, lng: 12.563553 },
+            //mapTypeId: 'satellite',
+            styles: [{"featureType":"administrative","elementType":"labels.text.fill","stylers":[{"color":"#444444"}]},{"featureType":"landscape","elementType":"all","stylers":[{"color":"#f2f2f2"}]},{"featureType":"landscape.man_made","elementType":"geometry","stylers":[{"visibility":"on"},{"color":"#ececec"}]},{"featureType":"landscape.natural","elementType":"geometry.fill","stylers":[{"visibility":"on"},{"color":"#a8e7a9"}]},{"featureType":"landscape.natural","elementType":"labels.text.fill","stylers":[{"color":"#ffffff"},{"visibility":"on"}]},{"featureType":"landscape.natural.landcover","elementType":"geometry.fill","stylers":[{"visibility":"on"},{"color":"#00ff76"}]},{"featureType":"poi","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"poi.attraction","elementType":"geometry.fill","stylers":[{"hue":"#ff0000"},{"visibility":"off"}]},{"featureType":"road","elementType":"all","stylers":[{"saturation":-100},{"lightness":45}]},{"featureType":"road.highway","elementType":"all","stylers":[{"visibility":"simplified"}]},{"featureType":"road.highway","elementType":"geometry.fill","stylers":[{"visibility":"simplified"},{"color":"#ffffff"}]},{"featureType":"road.arterial","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"road.local","elementType":"geometry.fill","stylers":[{"visibility":"on"},{"color":"#ffffff"}]},{"featureType":"road.local","elementType":"labels.text","stylers":[{"visibility":"on"}]},{"featureType":"road.local","elementType":"labels.text.fill","stylers":[{"color":"#727272"}]},{"featureType":"road.local","elementType":"labels.icon","stylers":[{"visibility":"on"}]},{"featureType":"transit","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"transit.station.bus","elementType":"labels.icon","stylers":[{"visibility":"on"}]},{"featureType":"water","elementType":"all","stylers":[{"color":"#48cde1"},{"visibility":"on"}]},{"featureType":"water","elementType":"geometry.fill","stylers":[{"color":"#5aa9c4"},{"lightness":"27"},{"visibility":"on"}]},{"featureType":"water","elementType":"labels.text.fill","stylers":[{"visibility":"on"},{"color":"#ffffff"}]}],
+
+        });
+
+        initHeatmap();
+
+    }
+
+    function toggleHeatmap() {
+        heatmap.setMap(heatmap.getMap() ? null : map);
+    }
+
+    function setGradientScale(){
+
+        /*
+        var gradient = [
+            "rgba(102, 255, 0, 1)",
+            "rgba(102, 255, 0, 1)",
+            "rgba(147, 255, 0, 1)",
+            "rgba(193, 255, 0, 1)",
+            "rgba(238, 255, 0, 1)",
+            "rgba(244, 227, 0, 1)",
+            "rgba(249, 198, 0, 1)",
+            "rgba(255, 170, 0, 1)",
+            "rgba(255, 113, 0, 1)",
+            "rgba(255, 57, 0, 1)",
+            "rgba(255, 57, 0, 1)",
+        ];
+        */
+
+        var gradient = [
+            "rgba(102, 255, 0, 1)",
+            "rgba(244, 227, 0, 1)",
+            "rgba(249, 198, 0, 1)",
+            "rgba(255, 0, 0, 1)",
+        ];
+
+        var clone = (heatmap.get('gradient') ? heatmap.get('gradient') : gradient).slice(0);
+        var gradientList = clone.reverse().join(',');
+        $('#floating-scale').css({
+            background: `linear-gradient(${gradientList})`
+        });
+    }
+
+    function changeGradient() {
+        
+        var gradient = [
+            'rgba(0, 255, 255, 0)',
+            'rgba(0, 255, 255, 1)',
+            'rgba(0, 191, 255, 1)',
+            'rgba(0, 127, 255, 1)',
+            'rgba(0, 63, 255, 1)',
+            'rgba(0, 0, 255, 1)',
+            'rgba(0, 0, 223, 1)',
+            'rgba(0, 0, 191, 1)',
+            'rgba(0, 0, 159, 1)',
+            'rgba(0, 0, 127, 1)',
+            'rgba(63, 0, 91, 1)',
+            'rgba(127, 0, 63, 1)',
+            'rgba(191, 0, 31, 1)',
+            'rgba(255, 0, 0, 1)'
+        ];
+        /*
+        var gradient = [
+            "rgba(102, 255, 0, 1)",
+            "rgba(102, 255, 0, 1)",
+            "rgba(147, 255, 0, 1)",
+            "rgba(193, 255, 0, 1)",
+            "rgba(238, 255, 0, 1)",
+            "rgba(244, 227, 0, 1)",
+            "rgba(249, 198, 0, 1)",
+            "rgba(255, 170, 0, 1)",
+            "rgba(255, 113, 0, 1)",
+            "rgba(255, 57, 0, 1)",
+            "rgba(255, 0, 0, 0)"
+        ];
+        gradient = gradient.reverse();
+        */
+        heatmap.set('gradient', heatmap.get('gradient') ? null : gradient);
+        setGradientScale();
+    }
+
+    function changeRadius() {
+        heatmap.set('radius', heatmap.get('radius') ? null : 17);
+    }
+
+    function changeOpacity() {
+        heatmap.set('opacity', heatmap.get('opacity') ? null : 0.4);
+    }
+
+    // Heatmap data: 500 Points
+    function initHeatmap(){
+        console.log('Setup heatmap');
+        getData(55.693382, 12.563553, 25000, 20000, 2, 29, function(data){
+            var coords = []
+            for (var i in data){
+                var item = data[i];
+                var lat = parseFloat(item['wgs84koordinat']['bredde']);
+                var lon = parseFloat(item['wgs84koordinat']['laengde']);
+                coords.push({lat: lat, lon: lon});
+            };
+
+
+            var points = coords.map(function(coord){
+                return new google.maps.LatLng(coord.lat, coord.lon);
+            });
+
+            heatmap = new google.maps.visualization.HeatmapLayer({
+                data: points,
+                map: map
+            });
+
+            setGradientScale();
+        });
+    }
+
+    </script>
+</body>
+
+</html>
