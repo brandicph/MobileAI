@@ -21,6 +21,17 @@ from pandas.plotting import andrews_curves
 from qp import QualiPoc
 mpl.style.use('seaborn')
 
+pgf_with_custom_preamble = {
+    "font.family": 'serif',
+    "font.serif": 'Times, Palatino, New Century Schoolbook, Bookman, Computer Modern Roman',
+    "font.sans-serif": 'Helvetica, Avant Garde, Computer Modern Sans serif',
+    "font.cursive": 'Zapf Chancery',
+    "font.monospace": 'Courier, Computer Modern Typewriter',
+    "text.usetex": True,
+    "text.dvipnghack": True
+}
+mpl.rcParams.update(pgf_with_custom_preamble)
+
 
 # CSV file path
 SCRIPT_PATH = os.path.dirname(os.path.abspath( __file__ ))
@@ -66,7 +77,7 @@ fig.tight_layout()
 plt.show(block=False)
 
 # Perform rolling mean
-df_sinr_rsrp_rolling = df[['SINR Rx[0]', 'RSRP Rx[0]', 'SINR Rx[1]', 'RSRP Rx[1]']].rolling(200, win_type='triang').sum()
+df_sinr_rsrp_rolling = df[['SINR Rx[0]', 'RSRP Rx[0]', 'SINR Rx[1]', 'RSRP Rx[1]']].rolling(200, win_type='triang').sum()/200
 
 # SINR0 / RSRP0
 fig, ax1 = plt.subplots()
@@ -109,6 +120,35 @@ ax2.tick_params('y')
 #ax2.set_yscale('log', basey=2)
 ax2.grid(False)
 fig.tight_layout()
+
+
+# CSV file path
+fig, ax1 = plt.subplots()
+s10 = df['SINR Rx[0]']
+s11 = df['SINR Rx[1]']
+ax1.plot(s10, color='#C44E52')
+ax1.plot(s11, color='grey')
+ax1.set_xlabel('Time')
+ax1.set_ylabel('SINR (dB)')
+ax1.legend(['SINR $Rx_0$', 'SINR $Rx_1$'], loc='upper right')
+ax1.tick_params('y')
+#ax1.set_yscale('log', basey=10)
+fig.tight_layout()
+plt.show(block=False)
+
+fig, ax1 = plt.subplots()
+s20 = df['RSRP Rx[0]']
+s21 = df['RSRP Rx[1]']
+ax1.plot(s20, color='#C44E52')
+ax1.plot(s21, color='grey')
+ax1.set_ylabel('RSRP (dBm)')
+ax1.set_xlabel('Time')
+ax1.legend(['RSRP $Rx_0$', 'RSRP $Rx_1$'], loc='upper right')
+ax1.tick_params('y')
+#ax2.set_yscale('log', basey=2)
+fig.tight_layout()
+plt.show(block=False)
+
 
 
 #plt.title('SINR vs. RSRP\nwithout preprocessing')
