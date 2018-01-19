@@ -94,6 +94,20 @@ df32_combined = pd.merge(df3, df32, left_index=True, right_index=True, how='inne
 df42_combined = pd.merge(df4, df42, left_index=True, right_index=True, how='inner')
 df52_combined = pd.merge(df5, df52, left_index=True, right_index=True, how='inner')
 
+# Rename columns after merge
+df12_combined.rename(columns={'Intermediate KPI_x': 'Intermediate KPI'}, inplace=True)
+df22_combined.rename(columns={'Intermediate KPI_x': 'Intermediate KPI'}, inplace=True)
+df32_combined.rename(columns={'Intermediate KPI_x': 'Intermediate KPI'}, inplace=True)
+df42_combined.rename(columns={'Intermediate KPI_x': 'Intermediate KPI'}, inplace=True)
+df52_combined.rename(columns={'Intermediate KPI_x': 'Intermediate KPI'}, inplace=True)
+
+# Drop NaN
+df12_combined.dropna(subset=['Intermediate KPI'], inplace=True)
+df22_combined.dropna(subset=['Intermediate KPI'], inplace=True)
+df32_combined.dropna(subset=['Intermediate KPI'], inplace=True)
+df42_combined.dropna(subset=['Intermediate KPI'], inplace=True)
+df52_combined.dropna(subset=['Intermediate KPI'], inplace=True)
+
 # Sort values
 """
 df12_combined = df12_combined.sort_values(by=['Intermediate KPI_x'])
@@ -103,7 +117,7 @@ df42_combined = df42_combined.sort_values(by=['Intermediate KPI_x'])
 df52_combined = df52_combined.sort_values(by=['Intermediate KPI_x'])
 """
 # Perform moving average
-window = 5
+window = 10
 df12_combined = df12_combined.rolling(window).sum()/window
 df22_combined = df22_combined.rolling(window).sum()/window
 df32_combined = df32_combined.rolling(window).sum()/window
@@ -115,11 +129,12 @@ print(len(df12_combined), len(df1))
 
 # CSV file path
 fig, ax1 = plt.subplots()
-s1 = df12_combined['RSRP']
-s2 = df22_combined['RSRP']
-s3 = df32_combined['RSRP']
-s4 = df42_combined['RSRP']
-s5 = df52_combined['RSRP']
+key = 'RSRP'
+s1 = df12_combined[key]
+s2 = df22_combined[key]
+s3 = df32_combined[key]
+s4 = df42_combined[key]
+s5 = df52_combined[key]
 ax1.plot(np.arange(len(s1)), s1)
 ax1.plot(np.arange(len(s2)), s2)
 ax1.plot(np.arange(len(s3)), s3)
@@ -127,7 +142,7 @@ ax1.plot(np.arange(len(s4)), s4)
 ax1.plot(np.arange(len(s5)), s5)
 ax1.set_xlabel('Measurement')
 ax1.set_ylabel('RSRP (dB)')
-ax1.legend(['RSRP 1', 'RSRP 2', 'RSRP 3', 'RSRP 4', 'RSRP 5'], loc='upper right')
+ax1.legend(loc='upper right')
 ax1.tick_params('y')
 #ax1.set_yscale('log', basey=10)
 fig.tight_layout()
@@ -135,12 +150,12 @@ plt.show(block=False)
 #fig.savefig("lineplot_sinr_raw.pdf")
 
 fig, ax1 = plt.subplots()
-print(df12_combined)
-s1 = df12_combined['Intermediate KPI_x']
-s2 = df22_combined['Intermediate KPI_x']
-s3 = df32_combined['Intermediate KPI_x']
-s4 = df42_combined['Intermediate KPI_x']
-s5 = df52_combined['Intermediate KPI_x']
+key = 'Intermediate KPI'
+s1 = df12_combined[key]
+s2 = df22_combined[key]
+s3 = df32_combined[key]
+s4 = df42_combined[key]
+s5 = df52_combined[key]
 ax1.plot(np.arange(len(s1)), s1)
 ax1.plot(np.arange(len(s2)), s2)
 ax1.plot(np.arange(len(s3)), s3)
@@ -148,7 +163,7 @@ ax1.plot(np.arange(len(s4)), s4)
 ax1.plot(np.arange(len(s5)), s5)
 ax1.set_xlabel('Measurement')
 ax1.set_ylabel('kbps')
-ax1.legend(['Intermediate KPI 1', 'Intermediate KPI 2', 'Intermediate KPI 3', 'Intermediate KPI 4', 'Intermediate KPI 5', ], loc='upper right')
+ax1.legend(loc='upper right')
 ax1.tick_params('y')
 #ax1.set_yscale('log', basey=10)
 #autolabel(rects,ax1)
