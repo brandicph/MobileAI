@@ -95,12 +95,13 @@ df42_combined = pd.merge(df4, df42, left_index=True, right_index=True, how='inne
 df52_combined = pd.merge(df5, df52, left_index=True, right_index=True, how='inner')
 
 # Sort values
+"""
 df12_combined = df12_combined.sort_values(by=['Intermediate KPI_x'])
 df22_combined = df22_combined.sort_values(by=['Intermediate KPI_x'])
 df32_combined = df32_combined.sort_values(by=['Intermediate KPI_x'])
 df42_combined = df42_combined.sort_values(by=['Intermediate KPI_x'])
 df52_combined = df52_combined.sort_values(by=['Intermediate KPI_x'])
-
+"""
 # Perform moving average
 window = 5
 df12_combined = df12_combined.rolling(window).sum()/window
