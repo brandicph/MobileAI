@@ -106,9 +106,9 @@ df52_combined = df52_combined.rolling(window).sum()/window
 fig, ax1 = plt.subplots()
 key = 'RSRP'
 
-for dataset in datasets:
+for index, dataset in enumerate(datasets):
     column = dataset[key]
-    ax1.plot(np.arange(len(column)), column)
+    ax1.plot(np.arange(len(column)), column, label='Test {}'.format(index+1))
 
 ax1.set_xlabel('Measurement')
 ax1.set_ylabel('RSRP (dBm)')
@@ -125,9 +125,9 @@ plt.show(block=False)
 fig, ax1 = plt.subplots()
 key = 'Intermediate KPI'
 
-for dataset in datasets:
+for index, dataset in enumerate(datasets):
     column = dataset[key]
-    ax1.plot(np.arange(len(column)), column)
+    ax1.plot(np.arange(len(column)), column, label='Test {}'.format(index+1))
 
 ax1.set_xlabel('Measurement')
 ax1.set_ylabel('Intermediate KPI (kbps)')
@@ -192,7 +192,7 @@ fig.tight_layout()
 plt.savefig('simple_{}_line_rsrp_combined.pdf'.format(DATASET_TYPE))
 plt.show(block=False)
 
-
+"""
 # Single PairGrid
 cmap = mpl.colors.ListedColormap(['#cc5155', '#C44E52', '#873638', '#602527'])
 g = sns.PairGrid(datasets[1][['RSRP', 'SINR Rx[0]', 'Intermediate KPI']])
@@ -217,14 +217,14 @@ plt.show(block=False)
 
 # Single PairGrid Extended
 cmap = mpl.colors.ListedColormap(['#cc5155', '#C44E52', '#873638', '#602527'])
-g = sns.PairGrid(datasets[1][['RSRP', 'SINR Rx[0]', 'SINR Rx[1]', 'Bytes Transferred', 'BLER', 'Intermediate KPI']])
+g = sns.PairGrid(datasets[1][['RSRP', 'RSRQ', 'RSSI', 'SINR Rx[0]', 'SINR Rx[1]', 'BLER', 'Bytes Transferred', 'Intermediate KPI']])
 g = g.map_lower(sns.regplot, color="#C44E52", marker='+', scatter_kws=dict(s=15), line_kws=dict(lw=2, color="black"))
 g = g.map_upper(sns.kdeplot, cmap=cmap, shade=False, shade_lowest=False)
 g = g.map_diag(sns.kdeplot, legend=False, shade=True, color="black")
 plt.tight_layout()
 plt.savefig('simple_{}_pairgrid_reference_extended.pdf'.format(DATASET_TYPE))
 plt.show(block=False)
-
+"""
 
 """
 # Combined PairGrid
@@ -237,10 +237,16 @@ g = g.map_diag(sns.kdeplot, legend=False, shade=True, color="black")
 plt.show(block=False)
 """
 
+ylim_rsrp_kpi = (-10000, 150000)
+xlim_rsrp_kpi = (-120, -50)
 # Joint plot two values
 g = sns.jointplot('RSRP', 'Intermediate KPI', data=datasets[0], kind='reg', marker='+', color="#990000", scatter_kws=dict(s=50), line_kws=dict(lw=2, color="black"))
 plt.xlabel('RSRP (dBm)')
 plt.ylabel('Intermediate KPI (kbps)')
+
+plt.ylim(ylim_rsrp_kpi)
+plt.xlim(xlim_rsrp_kpi)
+
 plt.legend()
 plt.tight_layout()
 plt.savefig('simple_{}_jointplot_rsrp_kpi.pdf'.format(DATASET_TYPE))
@@ -253,33 +259,121 @@ key2 = 'Intermediate KPI'
 
 datasets_combined = pd.concat(datasets)
 
-graph = sns.jointplot('RSRP', 'Intermediate KPI', data=datasets_combined, kind='reg', marker='.', color="#990000", scatter_kws=dict(s=1), line_kws=dict(lw=2, color="black"))
+graph = sns.jointplot(key1, key2, data=datasets_combined, kind='reg', marker='.', color="#990000", scatter_kws=dict(s=1), line_kws=dict(lw=2, color="black"))
 
 graph.x = datasets[0][key1]
 graph.y = datasets[0][key2]
-graph.plot_joint(plt.scatter, marker='+', c='#990000', s=50)
+graph.plot_joint(plt.scatter, marker='+', c='#c0392b', s=50, label='Test 1')
 
 graph.x = datasets[1][key1]
 graph.y = datasets[1][key2]
-graph.plot_joint(plt.scatter, marker='o', c='#7f8c8d', s=50)
+graph.plot_joint(plt.scatter, marker='o', c='#7f8c8d', s=50, label='Test 2')
 
 graph.x = datasets[2][key1]
 graph.y = datasets[2][key2]
-graph.plot_joint(plt.scatter, marker='*', c='#2c3e50', s=50)
+graph.plot_joint(plt.scatter, marker='*', c='#2c3e50', s=50, label='Test 3')
 
 graph.x = datasets[3][key1]
 graph.y = datasets[3][key2]
-graph.plot_joint(plt.scatter, marker='x', c='#8e44ad', s=50)
+graph.plot_joint(plt.scatter, marker='x', c='#8e44ad', s=50, label='Test 4')
 
 graph.x = datasets[4][key1]
 graph.y = datasets[4][key2]
-graph.plot_joint(plt.scatter, marker='^', c='#16a085', s=50)
+graph.plot_joint(plt.scatter, marker='^', c='#16a085', s=50, label='Test 5')
 
 plt.xlabel('RSRP (dBm)')
 plt.ylabel('Intermediate KPI (kbps)')
 
+plt.ylim(ylim_rsrp_kpi)
+plt.xlim(xlim_rsrp_kpi)
+
 plt.legend()
 plt.tight_layout()
 plt.savefig('simple_{}_jointplot_rsrp_kpi_combined.pdf'.format(DATASET_TYPE))
+
+plt.show(block=False)
+
+
+# Combined multi-jointplot (City)
+key1 = 'RSRP'
+key2 = 'Intermediate KPI'
+
+data_custom = 'city'
+datasets_custom = load_dataset(type=data_custom)
+datasets_custom_combined = pd.concat(datasets_custom)
+
+graph = sns.jointplot(key1, key2, data=datasets_custom_combined, kind='reg', marker='.', color="#990000", scatter_kws=dict(s=1), line_kws=dict(lw=2, color="black"))
+
+graph.x = datasets_custom[0][key1]
+graph.y = datasets_custom[0][key2]
+graph.plot_joint(plt.scatter, marker='+', c='#c0392b', s=50, label='Test 1')
+
+graph.x = datasets_custom[1][key1]
+graph.y = datasets_custom[1][key2]
+graph.plot_joint(plt.scatter, marker='o', c='#7f8c8d', s=50, label='Test 2')
+
+graph.x = datasets_custom[2][key1]
+graph.y = datasets_custom[2][key2]
+graph.plot_joint(plt.scatter, marker='*', c='#2c3e50', s=50, label='Test 3')
+
+graph.x = datasets_custom[3][key1]
+graph.y = datasets_custom[3][key2]
+graph.plot_joint(plt.scatter, marker='x', c='#8e44ad', s=50, label='Test 4')
+
+graph.x = datasets_custom[4][key1]
+graph.y = datasets_custom[4][key2]
+graph.plot_joint(plt.scatter, marker='^', c='#16a085', s=50, label='Test 5')
+
+plt.xlabel('RSRP (dBm)')
+plt.ylabel('Intermediate KPI (kbps)')
+
+plt.ylim(ylim_rsrp_kpi)
+plt.xlim(xlim_rsrp_kpi)
+
+plt.legend()
+plt.tight_layout()
+plt.savefig('simple_{}_jointplot_rsrp_kpi_combined.pdf'.format(data_custom))
+
+plt.show(block=False)
+
+
+
+# Combined multi-jointplot all scenarios
+key1 = 'RSRP'
+key2 = 'Intermediate KPI'
+
+datasets1 = load_dataset(type='highway')
+datasets2 = load_dataset(type='city')
+datasets3 = load_dataset(type='308')
+datasets123 = datasets1 + datasets2 + datasets3
+datasets123_combined = pd.concat(datasets123)
+
+datasets1_combined = pd.concat(datasets1)
+datasets2_combined = pd.concat(datasets2)
+datasets3_combined = pd.concat(datasets3)
+
+graph = sns.jointplot(key1, key2, data=datasets123_combined, kind='reg', marker='.', color="#990000", scatter_kws=dict(s=1), line_kws=dict(lw=2, color="black"))
+
+graph.x = datasets1_combined[key1]
+graph.y = datasets1_combined[key2]
+graph.plot_joint(plt.scatter, marker='o', c='#c0392b', s=50, label='Highway')
+
+graph.x = datasets2_combined[key1]
+graph.y = datasets2_combined[key2]
+graph.plot_joint(plt.scatter, marker='*', c='#7f8c8d', s=50, label='City')
+
+graph.x = datasets3_combined[key1]
+graph.y = datasets3_combined[key2]
+graph.plot_joint(plt.scatter, marker='x', c='#2c3e50', s=50, label='Country')
+
+plt.xlabel('RSRP (dBm)')
+plt.ylabel('Intermediate KPI (kbps)')
+
+plt.ylim(ylim_rsrp_kpi)
+plt.xlim(xlim_rsrp_kpi)
+
+plt.legend()
+plt.tight_layout()
+plt.savefig('simple_{}_jointplot_rsrp_kpi_combined_scenarios.pdf'.format(DATASET_TYPE))
 
 plt.show(block=True)
