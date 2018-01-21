@@ -52,12 +52,25 @@ import matplotlib as mpl
 import matplotlib.cm as cm
 import matplotlib.dates as mdates
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.patches import FancyArrowPatch
+from mpl_toolkits.mplot3d import proj3d
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, WhiteKernel, RationalQuadratic, ExpSineSquared, ConstantKernel, DotProduct, Matern
 from sklearn.datasets import fetch_mldata
+
+class Arrow3D(FancyArrowPatch):
+    def __init__(self, xs, ys, zs, *args, **kwargs):
+        FancyArrowPatch.__init__(self, (0,0), (0,0), *args, **kwargs)
+        self._verts3d = xs, ys, zs
+
+    def draw(self, renderer):
+        xs3d, ys3d, zs3d = self._verts3d
+        xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
+        self.set_positions((xs[0],ys[0]),(xs[1],ys[1]))
+        FancyArrowPatch.draw(self, renderer)
 
 mpl.style.use('seaborn')
 
@@ -111,38 +124,53 @@ def load_dataset(type='highway', n=5, merge_index=True):
         results.append(result)
 
     return results
-        
 
 datasets1 = load_dataset(type='highway')
 datasets2 = load_dataset(type='city')
 datasets3 = load_dataset(type='308')
 
 datasets1_combined = pd.concat(datasets1)
-datasets1_combined['Type'] = 0
+#datasets1_combined['Type'] = 0
 datasets2_combined = pd.concat(datasets2)
-datasets2_combined['Type'] = 1
+#datasets2_combined['Type'] = 1
 datasets3_combined = pd.concat(datasets3)
-datasets3_combined['Type'] = 2
+#datasets3_combined['Type'] = 2
 
 datasets123 = [datasets1_combined, datasets2_combined, datasets3_combined]
 datasets123_combined = pd.concat(datasets123)
+datasets123_combined['Type'] = 0
 datasets123_combined.dropna(subset=['RSRP', 'RSRP Rx[0]', 'RSRP Rx[1]', 'SINR Rx[0]', 'SINR Rx[1]', 'RSSI', 'RSRQ', 'Intermediate KPI'],inplace=True)
+
+
+#datasets123_combined = datasets123_combined.assign(Type = lambda x: 1)
+
+#datasets123_combined['Type'] = np.where(datasets123_combined['Intermediate KPI'] < 75000 , 1, 2)
+#datasets123_combined['Type'] = np.where(datasets123_combined['Intermediate KPI'] < 50000, 0, 1)
+
+datasets123_combined.loc[(datasets123_combined['Intermediate KPI'] >= 60000), 'Type'] = 2
+datasets123_combined.loc[(datasets123_combined['Intermediate KPI'] < 60000) & (datasets123_combined['Intermediate KPI'] >= 30000), 'Type'] = 1
+datasets123_combined.loc[(datasets123_combined['Intermediate KPI'] < 30000), 'Type'] = 0
 
 r = datasets123_combined['Type']
 
 datasets123_combined = datasets123_combined[['RSRP', 'RSRP Rx[0]', 'RSRP Rx[1]', 'SINR Rx[0]', 'SINR Rx[1]', 'RSSI', 'RSRQ', 'Intermediate KPI']].apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
 #X = datasets123_combined[['RSRP Rx[0]', 'RSRP Rx[1]', 'SINR Rx[0]', 'SINR Rx[1]']]
-X = datasets123_combined[['RSRP Rx[0]','RSRP Rx[1]', 'SINR Rx[0]', 'SINR Rx[1]', 'RSSI', 'RSRQ']]
+#X = datasets123_combined[['RSRP Rx[0]','RSRP Rx[1]', 'SINR Rx[0]', 'SINR Rx[1]', 'RSSI', 'RSRQ']]
+X = datasets123_combined[['RSRP', 'SINR Rx[0]', 'RSSI', 'RSRQ']]
+#X = datasets123_combined[['RSRP Rx[0]','RSRP Rx[1]']]
 y = datasets123_combined['Intermediate KPI']
 
-target_names = ['Highway', 'City', 'Country']
+#target_names = ['Highway', 'City', 'Country']
+target_names1 = [r'Low ($bitrate < 30Mbps$)', r'Medium ($30Mbps <= bitrate < 60Mbps$)', r'High ($bitrate >= 60Mbps$)']
+target_names2 = ['Low', 'Medium', 'High']
 
-n_features = 4
+n_features = 2
 U, _, _ = np.linalg.svd(X)
 rank = np.linalg.matrix_rank(X)
 pca = decomposition.PCA(n_components=n_features)
 X_r = pca.fit(X).transform(X)
 
+print('2 components', pca.components_)
 
 n_components = np.arange(0, n_features, 5)
 
@@ -151,19 +179,74 @@ print('explained variance ratio (first two components): %s'
       % str(pca.explained_variance_ratio_))
 
 plt.figure()
-colors = ['navy', 'turquoise', 'darkorange']
+colors = ['#c0392b', '#7f8c8d', '#2c3e50']
 lw = 2
 
-for color, i, target_name in zip(colors, [0, 1, 2], target_names):
-    plt.scatter(X_r[r == i, 0], X_r[r == i, 1], color=color, alpha=.8, lw=lw,
-                label=target_name)
+for color, i, target_name in zip(colors, [0, 1, 2], target_names1):
+    plt.scatter(X_r[r == i, 0], X_r[r == i, 1], color=color, alpha=.8, lw=1,
+                label=target_name, edgecolor='k')
 plt.legend(loc='best', shadow=False, scatterpoints=1)
 
 plt.tight_layout()
+plt.savefig('simple_all_pca_high_medium_low_2d.pdf')
 plt.show(block=False)
 
 
+fig = plt.figure(1, figsize=(4, 3))
+plt.clf()
 
+n_features = 3
+U, _, _ = np.linalg.svd(X)
+rank = np.linalg.matrix_rank(X)
+pca = decomposition.PCA(n_components=n_features)
+X_r = pca.fit(X).transform(X)
+
+n_components = np.arange(0, n_features, 5)
+
+ax = Axes3D(fig, rect=[0, 0, .95, 1], elev=48, azim=134)
+# Reorder the labels to have colors matching the cluster results
+for color, i, target_name1, target_name2 in zip(colors, [0, 1, 2], target_names1, target_names2):
+    ax.text3D(X_r[r == i, 0].mean(),
+              X_r[r == i, 1].mean(),
+              X_r[r == i, 2].mean(), target_name2,
+              horizontalalignment='center',
+              bbox=dict(alpha=.5, edgecolor='w', facecolor='w'))
+    ax.scatter(X_r[r == i, 0], X_r[r == i, 1], X_r[r == i, 2], color=color, alpha=.8, lw=0.5,
+                label=target_name1, cmap=plt.cm.spectral, edgecolor='k')
+
+
+X_centered = X - np.mean(X, axis=0)
+cov_matrix = np.dot(X_centered.T, X_centered) / len(X)
+eigenvalues = pca.explained_variance_
+for eigenvalue, eigenvector in zip(eigenvalues, pca.components_):    
+    print(np.dot(eigenvector.T, np.dot(cov_matrix, eigenvector)))
+    print(eigenvalue)
+
+
+print('3 components', pca.components_)
+
+print('explained variance ratio (first three components): %s'
+      % str(pca.explained_variance_ratio_))
+
+#ax.w_xaxis.set_ticklabels([])
+#ax.w_yaxis.set_ticklabels([])
+#ax.w_zaxis.set_ticklabels([])
+ax.set_xlabel('PCA1')
+ax.set_ylabel('PCA2')
+ax.set_zlabel('PCA3')
+
+
+plt.legend(loc='best', shadow=False, scatterpoints=1)
+plt.tight_layout()
+plt.savefig('simple_all_pca_high_medium_low.pdf', transparent=True)
+ax.view_init(elev=50., azim=10)
+plt.savefig('simple_all_pca_high_medium_low_changed_angle.pdf', transparent=True)
+
+plt.show(block=True)
+
+
+
+"""
 def compute_scores(X):
     pca = decomposition.PCA(svd_solver='full')
     fa = FactorAnalysis()
@@ -225,3 +308,4 @@ for X, title in [(X, 'Heteroscedastic Noise')]:
     plt.title(title)
 
 plt.show()
+"""

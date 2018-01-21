@@ -9,6 +9,7 @@ from pandas.plotting import andrews_curves
 
 import numpy as np
 
+import scipy
 from scipy import interpolate
 from scipy.stats import kendalltau
 
@@ -37,6 +38,9 @@ pgf_with_custom_preamble = {
     "font.monospace": 'Courier, Computer Modern Typewriter',
     "text.usetex": True,
     "text.dvipnghack": True,
+    #"patch.linewidth": 1,
+    #"patch.edgecolor": 'k',
+    #"patch.force_edgecolor": True,
     #"figure.facecolor": 'white',
     "axes.facecolor": '#F5F5F5',
     "axes.color_cycle": ['#c0392b', '#7f8c8d', '#2c3e50', '#8e44ad', '#16a085']
@@ -240,9 +244,16 @@ plt.show(block=False)
 ylim_rsrp_kpi = (-10000, 150000)
 xlim_rsrp_kpi = (-120, -50)
 # Joint plot two values
-g = sns.jointplot('RSRP', 'Intermediate KPI', data=datasets[0], kind='reg', marker='+', color="#990000", scatter_kws=dict(s=50), marginal_kws=dict(color='grey'), line_kws=dict(lw=2, color="black"))
+g = sns.jointplot('RSRP', 'Intermediate KPI', data=datasets[0], kind='reg', color="#990000", scatter_kws=dict(s=50, edgecolor='k', linewidth=1), marginal_kws=dict(color='grey'), line_kws=dict(lw=2, color="black"))
 plt.xlabel('RSRP (dBm)')
 plt.ylabel('Intermediate KPI (kbps)')
+
+
+xdata = datasets[0]['RSRP']
+ydata = datasets[0]['Intermediate KPI']
+
+slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(x=xdata,y=ydata)
+print('Single Test', "slope: {:20} intercept: {:20} r_value: {:20} p_value: {:20} std_err: {:20}".format(slope, intercept, r_value, p_value, std_err))
 
 plt.ylim(ylim_rsrp_kpi)
 plt.xlim(xlim_rsrp_kpi)
@@ -261,25 +272,31 @@ datasets_combined = pd.concat(datasets)
 
 graph = sns.jointplot(key1, key2, data=datasets_combined, kind='reg', marker='.', color="grey", scatter_kws=dict(s=1), line_kws=dict(lw=2, color="black"))
 
+xdata = datasets_combined[key1]
+ydata = datasets_combined[key2]
+
+slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(x=xdata,y=ydata)
+print('All Tests', "slope: {:20} intercept: {:20} r_value: {:20} p_value: {:20} std_err: {:20}".format(slope, intercept, r_value, p_value, std_err))
+
 graph.x = datasets[0][key1]
 graph.y = datasets[0][key2]
-graph.plot_joint(plt.scatter, marker='+', c='#c0392b', s=50, label='Test 1')
+graph.plot_joint(plt.scatter, c='#c0392b', s=50, label='Test 1', edgecolor='k', linewidth=1)
 
 graph.x = datasets[1][key1]
 graph.y = datasets[1][key2]
-graph.plot_joint(plt.scatter, marker='o', c='#7f8c8d', s=50, label='Test 2')
+graph.plot_joint(plt.scatter, c='#7f8c8d', s=50, label='Test 2', edgecolor='k', linewidth=1)
 
 graph.x = datasets[2][key1]
 graph.y = datasets[2][key2]
-graph.plot_joint(plt.scatter, marker='*', c='#2c3e50', s=50, label='Test 3')
+graph.plot_joint(plt.scatter, c='#2c3e50', s=50, label='Test 3', edgecolor='k', linewidth=1)
 
 graph.x = datasets[3][key1]
 graph.y = datasets[3][key2]
-graph.plot_joint(plt.scatter, marker='x', c='#8e44ad', s=50, label='Test 4')
+graph.plot_joint(plt.scatter, c='#8e44ad', s=50, label='Test 4', edgecolor='k', linewidth=1)
 
 graph.x = datasets[4][key1]
 graph.y = datasets[4][key2]
-graph.plot_joint(plt.scatter, marker='^', c='#16a085', s=50, label='Test 5')
+graph.plot_joint(plt.scatter, c='#16a085', s=50, label='Test 5', edgecolor='k', linewidth=1)
 
 plt.xlabel('RSRP (dBm)')
 plt.ylabel('Intermediate KPI (kbps)')
@@ -306,23 +323,23 @@ graph = sns.jointplot(key1, key2, data=datasets_custom_combined, kind='reg', mar
 
 graph.x = datasets_custom[0][key1]
 graph.y = datasets_custom[0][key2]
-graph.plot_joint(plt.scatter, marker='+', c='#c0392b', s=50, label='Test 1')
+graph.plot_joint(plt.scatter, c='#c0392b', s=50, label='Test 1', edgecolor='k', linewidth=1)
 
 graph.x = datasets_custom[1][key1]
 graph.y = datasets_custom[1][key2]
-graph.plot_joint(plt.scatter, marker='o', c='#7f8c8d', s=50, label='Test 2')
+graph.plot_joint(plt.scatter, c='#7f8c8d', s=50, label='Test 2', edgecolor='k', linewidth=1)
 
 graph.x = datasets_custom[2][key1]
 graph.y = datasets_custom[2][key2]
-graph.plot_joint(plt.scatter, marker='*', c='#2c3e50', s=50, label='Test 3')
+graph.plot_joint(plt.scatter, c='#2c3e50', s=50, label='Test 3', edgecolor='k', linewidth=1)
 
 graph.x = datasets_custom[3][key1]
 graph.y = datasets_custom[3][key2]
-graph.plot_joint(plt.scatter, marker='x', c='#8e44ad', s=50, label='Test 4')
+graph.plot_joint(plt.scatter, c='#8e44ad', s=50, label='Test 4', edgecolor='k', linewidth=1)
 
 graph.x = datasets_custom[4][key1]
 graph.y = datasets_custom[4][key2]
-graph.plot_joint(plt.scatter, marker='^', c='#16a085', s=50, label='Test 5')
+graph.plot_joint(plt.scatter, c='#16a085', s=50, label='Test 5', edgecolor='k', linewidth=1)
 
 plt.xlabel('RSRP (dBm)')
 plt.ylabel('Intermediate KPI (kbps)')
@@ -354,17 +371,23 @@ datasets3_combined = pd.concat(datasets3)
 
 graph = sns.jointplot(key1, key2, data=datasets123_combined, kind='reg', marker='.', color="grey", scatter_kws=dict(s=1), line_kws=dict(lw=2, color="black"))
 
+xdata = datasets123_combined[key1]
+ydata = datasets123_combined[key2]
+
+slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(x=xdata,y=ydata)
+print('All Scenarios', "slope: {:20} intercept: {:20} r_value: {:20} p_value: {:20} std_err: {:20}".format(slope, intercept, r_value, p_value, std_err))
+
 graph.x = datasets1_combined[key1]
 graph.y = datasets1_combined[key2]
-graph.plot_joint(plt.scatter, marker='o', c='#c0392b', s=50, label='Highway')
+graph.plot_joint(plt.scatter, c='#c0392b', s=50, label='Highway', edgecolor='k', linewidth=1)
 
 graph.x = datasets2_combined[key1]
 graph.y = datasets2_combined[key2]
-graph.plot_joint(plt.scatter, marker='*', c='#7f8c8d', s=50, label='City')
+graph.plot_joint(plt.scatter, c='#7f8c8d', s=50, label='City', edgecolor='k', linewidth=1)
 
 graph.x = datasets3_combined[key1]
 graph.y = datasets3_combined[key2]
-graph.plot_joint(plt.scatter, marker='x', c='#2c3e50', s=50, label='Country')
+graph.plot_joint(plt.scatter, c='#2c3e50', s=50, label='Country', edgecolor='k', linewidth=1)
 
 plt.xlabel('RSRP (dBm)')
 plt.ylabel('Intermediate KPI (kbps)')
@@ -400,11 +423,11 @@ datasets1_combined = pd.concat(datasets1)
 datasets2_combined = pd.concat(datasets2)
 datasets3_combined = pd.concat(datasets3)
 
-sns.residplot(x=key1, y=key2, data=datasets1_combined, ax=ax1, label='Highway');
+sns.residplot(x=key1, y=key2, data=datasets1_combined, ax=ax1, label='Highway', scatter_kws=dict(edgecolor='k', linewidth=1));
 ax1.legend(['y = 0', 'Highway'])
-sns.residplot(x=key1, y=key2, data=datasets2_combined, ax=ax2, label='City');
+sns.residplot(x=key1, y=key2, data=datasets2_combined, ax=ax2, label='City', scatter_kws=dict(edgecolor='k', linewidth=1));
 ax2.legend(['y = 0', 'City'])
-sns.residplot(x=key1, y=key2, data=datasets3_combined, ax=ax3, label='Country');
+sns.residplot(x=key1, y=key2, data=datasets3_combined, ax=ax3, label='Country', scatter_kws=dict(edgecolor='k', linewidth=1));
 ax3.legend(['y = 0', 'Country'])
 
 plt.xlabel('RSRP (dBm)')
@@ -414,6 +437,37 @@ plt.savefig('simple_{}_residual_rsrp_kpi.pdf'.format('all'))
 
 plt.show(block=False)
 
+
+
+# Combined multi-jointplot (Highway)
+key1 = 'RSRP'
+key2 = 'Intermediate KPI'
+
+data_custom = 'highway'
+hue = 'Type'
+datasets_custom = load_dataset(type=data_custom)
+datasets_custom[0]['Type'] = 'Test 1'
+datasets_custom[1]['Type'] = 'Test 2'
+datasets_custom[2]['Type'] = 'Test 3'
+datasets_custom[3]['Type'] = 'Test 4'
+datasets_custom[4]['Type'] = 'Test 5'
+
+datasets_custom_combined = pd.concat(datasets_custom)
+
+sns.lmplot(x=key1, y=key2, data=datasets_custom_combined, hue=hue, legend=False, scatter_kws=dict(edgecolor='k', linewidth=1));
+
+
+plt.xlabel('RSRP (dBm)')
+plt.ylabel('Intermediate KPI (kbps)')
+
+plt.ylim(ylim_rsrp_kpi)
+plt.xlim(xlim_rsrp_kpi)
+
+plt.legend()
+plt.tight_layout()
+plt.savefig('simple_{}_lmplot_rsrp_kpi_tests_seperate.pdf'.format(data_custom))
+
+plt.show(block=False)
 
 
 # http://statisticsbyjim.com/regression/heteroscedasticity-regression/
@@ -440,7 +494,7 @@ datasets3_combined['Type'] = 'Country'
 datasets123 = [datasets1_combined, datasets2_combined, datasets3_combined]
 datasets123_combined = pd.concat(datasets123)
 
-sns.lmplot(x=key1, y=key2, data=datasets123_combined, hue=hue);
+sns.lmplot(x=key1, y=key2, data=datasets123_combined, hue=hue, legend=False, scatter_kws=dict(edgecolor='k', linewidth=1));
 
 plt.xlabel('RSRP (dBm)')
 plt.ylabel('Intermediate KPI (kbps)')
@@ -448,7 +502,7 @@ plt.ylabel('Intermediate KPI (kbps)')
 #plt.ylim(ylim_rsrp_kpi)
 #plt.xlim(xlim_rsrp_kpi)
 
-#plt.legend()
+plt.legend()
 plt.tight_layout()
 plt.savefig('simple_{}_lmplot_rsrp_kpi_regression.pdf'.format('all'))
 
