@@ -28,7 +28,7 @@ from sklearn.datasets import fetch_mldata
 
 mpl.style.use('seaborn')
 
-# pomegranate: #c0392b
+# pomegranate: #c0392b 
 pgf_with_custom_preamble = {
     "font.family": 'serif',
     "font.serif": 'Times, Palatino, New Century Schoolbook, Bookman, Computer Modern Roman',
@@ -240,7 +240,7 @@ plt.show(block=False)
 ylim_rsrp_kpi = (-10000, 150000)
 xlim_rsrp_kpi = (-120, -50)
 # Joint plot two values
-g = sns.jointplot('RSRP', 'Intermediate KPI', data=datasets[0], kind='reg', marker='+', color="#990000", scatter_kws=dict(s=50), line_kws=dict(lw=2, color="black"))
+g = sns.jointplot('RSRP', 'Intermediate KPI', data=datasets[0], kind='reg', marker='+', color="#990000", scatter_kws=dict(s=50), marginal_kws=dict(color='grey'), line_kws=dict(lw=2, color="black"))
 plt.xlabel('RSRP (dBm)')
 plt.ylabel('Intermediate KPI (kbps)')
 
@@ -259,7 +259,7 @@ key2 = 'Intermediate KPI'
 
 datasets_combined = pd.concat(datasets)
 
-graph = sns.jointplot(key1, key2, data=datasets_combined, kind='reg', marker='.', color="#990000", scatter_kws=dict(s=1), line_kws=dict(lw=2, color="black"))
+graph = sns.jointplot(key1, key2, data=datasets_combined, kind='reg', marker='.', color="grey", scatter_kws=dict(s=1), line_kws=dict(lw=2, color="black"))
 
 graph.x = datasets[0][key1]
 graph.y = datasets[0][key2]
@@ -302,7 +302,7 @@ data_custom = 'city'
 datasets_custom = load_dataset(type=data_custom)
 datasets_custom_combined = pd.concat(datasets_custom)
 
-graph = sns.jointplot(key1, key2, data=datasets_custom_combined, kind='reg', marker='.', color="#990000", scatter_kws=dict(s=1), line_kws=dict(lw=2, color="black"))
+graph = sns.jointplot(key1, key2, data=datasets_custom_combined, kind='reg', marker='.', color="grey", scatter_kws=dict(s=1), line_kws=dict(lw=2, color="black"))
 
 graph.x = datasets_custom[0][key1]
 graph.y = datasets_custom[0][key2]
@@ -352,7 +352,7 @@ datasets1_combined = pd.concat(datasets1)
 datasets2_combined = pd.concat(datasets2)
 datasets3_combined = pd.concat(datasets3)
 
-graph = sns.jointplot(key1, key2, data=datasets123_combined, kind='reg', marker='.', color="#990000", scatter_kws=dict(s=1), line_kws=dict(lw=2, color="black"))
+graph = sns.jointplot(key1, key2, data=datasets123_combined, kind='reg', marker='.', color="grey", scatter_kws=dict(s=1), line_kws=dict(lw=2, color="black"))
 
 graph.x = datasets1_combined[key1]
 graph.y = datasets1_combined[key2]
@@ -375,5 +375,81 @@ plt.xlim(xlim_rsrp_kpi)
 plt.legend()
 plt.tight_layout()
 plt.savefig('simple_{}_jointplot_rsrp_kpi_combined_scenarios.pdf'.format(DATASET_TYPE))
+
+plt.show(block=False)
+
+
+#f, (ax1, ax2, ax3) = plt.subplots(ncols=3, sharey=True)
+f, (ax1, ax2, ax3) = plt.subplots(3)
+# http://statisticsbyjim.com/regression/heteroscedasticity-regression/
+# https://cs.stanford.edu/~quocle/LeSmoCan05.pdf
+# https://github.com/josephmisiti/awesome-machine-learning
+# http://etheses.whiterose.ac.uk/9968/1/Damianou_Thesis.pdf
+# ftp://ftp.cea.fr/pub/unati/people/educhesnay/pystatml/StatisticsMachineLearningPythonDraft.pdf
+# Resid multi-jointplot all scenarios
+key1 = 'RSRP'
+key2 = 'Intermediate KPI'
+
+datasets1 = load_dataset(type='highway')
+datasets2 = load_dataset(type='city')
+datasets3 = load_dataset(type='308')
+datasets123 = datasets1 + datasets2 + datasets3
+datasets123_combined = pd.concat(datasets123)
+
+datasets1_combined = pd.concat(datasets1)
+datasets2_combined = pd.concat(datasets2)
+datasets3_combined = pd.concat(datasets3)
+
+sns.residplot(x=key1, y=key2, data=datasets1_combined, ax=ax1, label='Highway');
+ax1.legend(['y = 0', 'Highway'])
+sns.residplot(x=key1, y=key2, data=datasets2_combined, ax=ax2, label='City');
+ax2.legend(['y = 0', 'City'])
+sns.residplot(x=key1, y=key2, data=datasets3_combined, ax=ax3, label='Country');
+ax3.legend(['y = 0', 'Country'])
+
+plt.xlabel('RSRP (dBm)')
+plt.ylabel('Intermediate KPI (kbps)')
+plt.tight_layout()
+plt.savefig('simple_{}_residual_rsrp_kpi.pdf'.format('all'))
+
+plt.show(block=False)
+
+
+
+# http://statisticsbyjim.com/regression/heteroscedasticity-regression/
+# https://cs.stanford.edu/~quocle/LeSmoCan05.pdf
+# https://github.com/josephmisiti/awesome-machine-learning
+# http://etheses.whiterose.ac.uk/9968/1/Damianou_Thesis.pdf
+# ftp://ftp.cea.fr/pub/unati/people/educhesnay/pystatml/StatisticsMachineLearningPythonDraft.pdf
+# Resid multi-jointplot all scenarios
+key1 = 'RSRP'
+key2 = 'Intermediate KPI'
+hue = 'Type'
+
+datasets1 = load_dataset(type='highway')
+datasets2 = load_dataset(type='city')
+datasets3 = load_dataset(type='308')
+
+datasets1_combined = pd.concat(datasets1)
+datasets1_combined['Type'] = 'Highway'
+datasets2_combined = pd.concat(datasets2)
+datasets2_combined['Type'] = 'City'
+datasets3_combined = pd.concat(datasets3)
+datasets3_combined['Type'] = 'Country'
+
+datasets123 = [datasets1_combined, datasets2_combined, datasets3_combined]
+datasets123_combined = pd.concat(datasets123)
+
+sns.lmplot(x=key1, y=key2, data=datasets123_combined, hue=hue);
+
+plt.xlabel('RSRP (dBm)')
+plt.ylabel('Intermediate KPI (kbps)')
+
+#plt.ylim(ylim_rsrp_kpi)
+#plt.xlim(xlim_rsrp_kpi)
+
+#plt.legend()
+plt.tight_layout()
+plt.savefig('simple_{}_lmplot_rsrp_kpi_regression.pdf'.format('all'))
 
 plt.show(block=True)
