@@ -139,7 +139,7 @@ datasets3_combined = pd.concat(datasets3)
 datasets123 = [datasets1_combined, datasets2_combined, datasets3_combined]
 datasets123_combined = pd.concat(datasets123)
 datasets123_combined['Type'] = 0
-datasets123_combined.dropna(subset=['RSRP', 'RSRP Rx[0]', 'RSRP Rx[1]', 'SINR Rx[0]', 'SINR Rx[1]', 'RSSI', 'RSRQ', 'Intermediate KPI'],inplace=True)
+datasets123_combined.dropna(subset=['RSRP', 'RSRP Rx[0]', 'RSRP Rx[1]', 'SINR Rx[0]', 'SINR Rx[1]', 'RSSI', 'RSRQ', 'Average MCS Index', 'Intermediate KPI'],inplace=True)
 
 
 #datasets123_combined = datasets123_combined.assign(Type = lambda x: 1)
@@ -156,7 +156,7 @@ r = datasets123_combined['Type']
 datasets123_combined = datasets123_combined[['RSRP', 'RSRP Rx[0]', 'RSRP Rx[1]', 'SINR Rx[0]', 'SINR Rx[1]', 'RSSI', 'RSRQ', 'Intermediate KPI']].apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
 #X = datasets123_combined[['RSRP Rx[0]', 'RSRP Rx[1]', 'SINR Rx[0]', 'SINR Rx[1]']]
 #X = datasets123_combined[['RSRP Rx[0]','RSRP Rx[1]', 'SINR Rx[0]', 'SINR Rx[1]', 'RSSI', 'RSRQ']]
-X = datasets123_combined[['RSRP', 'SINR Rx[0]', 'RSSI', 'RSRQ']]
+X = datasets123_combined[['RSRP', 'SINR Rx[0]', 'RSSI', 'RSRQ', 'Average MCS Index']]
 #X = datasets123_combined[['RSRP Rx[0]','RSRP Rx[1]']]
 y = datasets123_combined['Intermediate KPI']
 
