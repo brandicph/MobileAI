@@ -125,6 +125,7 @@ def load_dataset(type='highway', n=5, merge_index=True):
 
     return results
 
+
 datasets1 = load_dataset(type='highway')
 datasets2 = load_dataset(type='city')
 datasets3 = load_dataset(type='308')
@@ -153,10 +154,12 @@ datasets123_combined.loc[(datasets123_combined['Intermediate KPI'] < 30000), 'Ty
 
 r = datasets123_combined['Type']
 
-datasets123_combined = datasets123_combined[['RSRP', 'RSRP Rx[0]', 'RSRP Rx[1]', 'SINR Rx[0]', 'SINR Rx[1]', 'RSSI', 'RSRQ', 'Intermediate KPI']].apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
+#datasets123_combined = datasets123_combined[['RSRP', 'RSRP Rx[0]', 'RSRP Rx[1]', 'SINR Rx[0]', 'SINR Rx[1]', 'RSSI', 'RSRQ', 'Intermediate KPI']].apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
 #X = datasets123_combined[['RSRP Rx[0]', 'RSRP Rx[1]', 'SINR Rx[0]', 'SINR Rx[1]']]
 #X = datasets123_combined[['RSRP Rx[0]','RSRP Rx[1]', 'SINR Rx[0]', 'SINR Rx[1]', 'RSSI', 'RSRQ']]
-X = datasets123_combined[['RSRP', 'SINR Rx[0]', 'RSSI', 'RSRQ', 'Average MCS Index']]
+#X = datasets123_combined[['RSRP', 'SINR Rx[0]', 'RSSI', 'RSRQ', 'Average MCS Index']]
+datasets123_combined = datasets123_combined[['RSRP', 'SINR Rx[0]', 'RSSI', 'RSRQ','Intermediate KPI']].apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
+X = datasets123_combined[['RSRP', 'SINR Rx[0]', 'RSSI', 'RSRQ']]
 #X = datasets123_combined[['RSRP Rx[0]','RSRP Rx[1]']]
 y = datasets123_combined['Intermediate KPI']
 
@@ -164,19 +167,19 @@ y = datasets123_combined['Intermediate KPI']
 target_names1 = [r'Low ($bitrate < 30Mbps$)', r'Medium ($30Mbps <= bitrate < 60Mbps$)', r'High ($bitrate >= 60Mbps$)']
 target_names2 = ['Low', 'Medium', 'High']
 
-n_features = 2
+n_features = 4
 U, _, _ = np.linalg.svd(X)
 rank = np.linalg.matrix_rank(X)
 pca = decomposition.PCA(n_components=n_features)
 X_r = pca.fit(X).transform(X)
 
-print('2 components', pca.components_)
+print('2 components', pca.components_.round(4))
 
 n_components = np.arange(0, n_features, 5)
 
 # Percentage of variance explained for each components
 print('explained variance ratio (first two components): %s'
-      % str(pca.explained_variance_ratio_))
+      % str(pca.explained_variance_ratio_.round(4)))
 
 plt.figure()
 colors = ['#c0392b', '#7f8c8d', '#2c3e50']
@@ -192,6 +195,39 @@ plt.savefig('simple_all_pca_high_medium_low_2d.pdf')
 plt.show(block=False)
 
 
+var_exp = pca.explained_variance_ratio_
+cum_var_exp = np.cumsum(pca.explained_variance_ratio_)
+plt.figure(figsize=(6, 4))
+
+plt.bar(np.arange(1, len(var_exp)+1), var_exp, alpha=0.9, linewidth=1, edgecolor='black', align='center',
+        label='Individual Explained Variance', color='#2c3e50')
+plt.step(np.arange(1, len(var_exp)+1), cum_var_exp, where='mid',
+         label='Cumulative Explained Variance', color='#7f8c8d')
+plt.ylabel('Explained Variance Ratio')
+plt.xlabel('Principal Components')
+plt.legend(loc='best')
+plt.tight_layout()
+plt.xlim((0,len(var_exp)+1))
+plt.xticks(np.arange(0, len(var_exp)+1, 1))
+
+plt.savefig('simple_all_pca_explained_variance.pdf')
+plt.show(block=False)
+
+plt.figure(figsize=(6, 4))
+
+var_pct = np.cumsum(np.round(pca.explained_variance_ratio_, decimals=3)*100)
+plt.plot(np.arange(1, len(var_exp)+1), var_pct, color='#2c3e50', label='Variance')
+
+plt.ylabel(r'\% Variance Explained')
+plt.xlabel(r'$n$ Features')
+plt.ylim(30,100.5)
+plt.xticks(np.arange(1, len(var_exp)+1, 1))
+plt.legend(loc='best')
+plt.tight_layout()
+plt.savefig('simple_all_pca_explained_variance_pct.pdf')
+plt.show(block=True)
+
+quit()
 fig = plt.figure(1, figsize=(4, 3))
 plt.clf()
 
@@ -218,10 +254,11 @@ for color, i, target_name1, target_name2 in zip(colors, [0, 1, 2], target_names1
 X_centered = X - np.mean(X, axis=0)
 cov_matrix = np.dot(X_centered.T, X_centered) / len(X)
 eigenvalues = pca.explained_variance_
+"""
 for eigenvalue, eigenvector in zip(eigenvalues, pca.components_):    
     print(np.dot(eigenvector.T, np.dot(cov_matrix, eigenvector)))
     print(eigenvalue)
-
+"""
 
 print('3 components', pca.components_)
 
