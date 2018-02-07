@@ -18,6 +18,11 @@ tools:context="dk.dtu.mobileai.MainActivity">
         android:text="LTE Signal Strength"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
+    <com.jjoe64.graphview.GraphView
+        android:layout_width="match_parent"
+        android:layout_height="200dip"
+        android:id="@+id/graph" />
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">

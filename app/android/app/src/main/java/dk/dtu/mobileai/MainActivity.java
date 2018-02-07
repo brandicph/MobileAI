@@ -5,10 +5,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -20,9 +23,16 @@ import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.GridLabelRenderer;
+import com.jjoe64.graphview.LegendRenderer;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.READ_PHONE_STATE;
@@ -76,6 +86,8 @@ public class MainActivity extends AppCompatActivity {
     TextView locLatitudeTextView;
     TextView locLongitudeTextView;
 
+    GraphView graphView;
+
     List<CellInfo> cellInfoList;
     int cellSig, cellID, cellMcc, cellMnc, cellPci, cellTac = 0;
     String ueIMSI, ueIMEI, ueDeviceName = null;
@@ -86,6 +98,12 @@ public class MainActivity extends AppCompatActivity {
     TelephonyManager tm;
 
     LocationManager lm;
+
+    private final Handler mHandler = new Handler();
+    private Runnable mTimer;
+    private double graphLastXValue = 5d;
+    private LineGraphSeries<DataPoint> mSeriesRSRP1;
+    private LineGraphSeries<DataPoint> mSeriesRSRP2;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -106,6 +124,10 @@ public class MainActivity extends AppCompatActivity {
         ueImsiTextView = (TextView) findViewById(R.id.ueImsiTextView);
         locLatitudeTextView = (TextView) findViewById(R.id.locLatitudeTextView);
         locLongitudeTextView = (TextView) findViewById(R.id.locLongitudeTextView);
+
+        graphView = (GraphView) findViewById(R.id.graph);
+
+        initGraph(graphView);
 
 
         //start the signal strength listener
@@ -219,6 +241,65 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void initGraph(GraphView graph) {
+        graph.getViewport().setXAxisBoundsManual(true);
+        graph.getViewport().setYAxisBoundsManual(true);
+        graph.getViewport().setMinX(0);
+        graph.getViewport().setMaxX(500);
+        graph.getViewport().setMinY(-140);
+        graph.getViewport().setMaxY(-40);
+
+        graph.getGridLabelRenderer().setLabelVerticalWidth(100);
+
+        // first mSeries is a line
+        mSeriesRSRP1 = new LineGraphSeries<>();
+        mSeriesRSRP1.setDrawDataPoints(false);
+        mSeriesRSRP1.setDrawBackground(true);
+        mSeriesRSRP1.setTitle("RSRP 0");
+        graph.addSeries(mSeriesRSRP1);
+
+        mSeriesRSRP2 = new LineGraphSeries<>();
+        mSeriesRSRP2.setDrawDataPoints(false);
+        mSeriesRSRP2.setDrawBackground(true);
+        mSeriesRSRP2.setTitle("RSRP 1");
+        mSeriesRSRP2.setColor(Color.GREEN);
+        graph.addSeries(mSeriesRSRP2);
+
+        graph.getGridLabelRenderer().setHighlightZeroLines(false);
+        graph.getGridLabelRenderer().setVerticalLabelsAlign(Paint.Align.LEFT);
+        graph.getGridLabelRenderer().setLabelVerticalWidth(100);
+        graph.getGridLabelRenderer().setTextSize(20);
+        graph.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.HORIZONTAL);
+        graph.getGridLabelRenderer().setHorizontalLabelsAngle(120);
+        graph.getGridLabelRenderer().reloadStyles();
+
+        graph.getLegendRenderer().setVisible(true);
+        graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
+        graph.getLegendRenderer().setBackgroundColor(Color.TRANSPARENT);
+    }
+
+    public void onResume() {
+        super.onResume();
+        /*
+        mTimer = new Runnable() {
+            @Override
+            public void run() {
+                graphLastXValue += 0.25d;
+                mSeries.appendData(new DataPoint(graphLastXValue, getRandom()), true, 22);
+                mHandler.postDelayed(this, 330);
+            }
+        };
+        mHandler.postDelayed(mTimer, 1500);
+        */
+    }
+
+
+    double mLastRandom = 2;
+    Random mRand = new Random();
+    private double getRandom() {
+        return mLastRandom += mRand.nextDouble()*0.5 - 0.25;
+    }
+
 
     @Override
     public void onPause() {
@@ -229,6 +310,8 @@ public class MainActivity extends AppCompatActivity {
         }catch(Exception e){
             e.printStackTrace();
         }
+
+        mHandler.removeCallbacks(mTimer);
     }
 
 
@@ -356,6 +439,11 @@ public class MainActivity extends AppCompatActivity {
             ueDeviceNameTextView.setText(String.valueOf(ueDeviceName));
             ueImeiTextView.setText(String.valueOf(ueIMEI));
             ueImsiTextView.setText(String.valueOf(ueIMSI));
+
+            graphLastXValue += 1d;
+            int rsrp2 =Integer.parseInt(cellSig2);
+            mSeriesRSRP1.appendData(new DataPoint(graphLastXValue, cellSig), true, 1000);
+            mSeriesRSRP2.appendData(new DataPoint(graphLastXValue, rsrp2), true, 1000);
 
             super.onSignalStrengthsChanged(signalStrength);
 
