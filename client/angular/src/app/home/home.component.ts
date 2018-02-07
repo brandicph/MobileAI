@@ -43,7 +43,6 @@ export class HomeComponent implements OnInit {
       .subscribe(
         (userEntities) => {
           this.userEntities = userEntities;
-          console.log(userEntities);
         }
       );
   }
