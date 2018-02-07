@@ -5,4 +5,10 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="AppTheme.RedStatusBar" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimaryDark">@color/colorRedDTUDark</item>
+        <item name="colorPrimary">@color/colorRedDTU</item>
+        <item name="android:windowBackground">@color/colorLightGrey</item>
+    </style>
+
 </resources>
