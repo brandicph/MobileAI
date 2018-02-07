@@ -550,7 +550,7 @@ public class MainActivity extends AppCompatActivity {
                     // cannot get location
                     this.locationServiceAvailable = false;
                 }
-                else
+                //else
                 {
                     this.locationServiceAvailable = true;
 
@@ -587,6 +587,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onLocationChanged(Location location)     {
             // do stuff here with location object
+            this.location = location;
             longitude = this.location.getLongitude();
             latitude = this.location.getLatitude();
             updateCoordinates();
