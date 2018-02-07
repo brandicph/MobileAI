@@ -7,6 +7,24 @@
         </div>
     </div>
 </section>
+
+<section class="models">
+    <div class="grid one">
+        <div class="item">
+            <input placeholder="Name" autofocus="" [(ngModel)]="newUserEntity.name">
+            <input placeholder="IMSI" autofocus="" [(ngModel)]="newUserEntity.IMSI">
+            <input placeholder="IMEI" autofocus="" [(ngModel)]="newUserEntity.IMEI">
+            <button (click)="addUserEntity()">Add UE</button>
+        </div>
+    </div>
+</section>
+
+<section class="devices" *ngIf="userEntities.length > 0">
+    <div class="item" *ngFor="let userEntity of userEntities">
+        <label>{{userEntity.name}}</label>
+        <button class="destroy" (click)="removeUserEntity(userEntity)"></button>
+    </div>
+</section>
 <!--
 <section class="overview">
     <div class="grid three">

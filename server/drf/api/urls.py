@@ -15,5 +15,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    url(r'^docs/', include_docs_urls(title='Mobile AI API'))
+    url(r'^docs/', include_docs_urls(title='Mobile AI API')),
+    url(r'^channels-api/', include('channels_api.urls'))
 ]

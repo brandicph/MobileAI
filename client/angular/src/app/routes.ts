@@ -2,7 +2,7 @@ import { HomeComponent } from './home/home.component';
 
 export const APP_ROUTES = [
   {path: '', redirectTo: 'home', pathMatch: 'full'},
-  {path: 'find', redirectTo: 'search'},
+  //{path: 'find', redirectTo: 'search'},
   {path: 'home', component: HomeComponent},
   /*
   {

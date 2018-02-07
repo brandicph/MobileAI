@@ -33,8 +33,8 @@ class UserEntity(models.Model):
         unique_together = ('IMSI', 'IMEI')
         ordering = ['name']
 
-    def __unicode__(self):
-        return '%s: %s' % (self.IMEI, self.name)
+    def __str__(self):
+        return '%s - %s' % (self.name, self.IMEI)
 
 
 
@@ -59,5 +59,5 @@ class Measurement(models.Model):
     class Meta:
         ordering = ['created_at']
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s: %s' % (self.key, self.value)

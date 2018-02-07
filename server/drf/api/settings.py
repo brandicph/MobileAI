@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    'channels',
+    #'channels_api',
     'api.ue',
 ]
 
@@ -83,6 +85,11 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10
 }
 
+CHANNELS_API = {
+    'DEFAULT_PERMISSION_CLASSES': ('channels_api.permissions.AllowAny',),
+    'DEFAULT_PAGE_SIZE': 10,
+}
+
 CORS_ORIGIN_WHITELIST = (
     'google.com',
     'hostname.example.com',
@@ -93,6 +100,7 @@ CORS_ORIGIN_WHITELIST = (
 CORS_ORIGIN_ALLOW_ALL = True
 
 WSGI_APPLICATION = 'api.wsgi.application'
+ASGI_APPLICATION = 'api.routing.application'
 
 
 # Database
