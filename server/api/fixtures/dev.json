@@ -1,0 +1,25 @@
+[{
+  "model": "authtoken.token",
+  "pk": "94629c425a5fd26dc172e3916e168975b648d80c",
+  "fields": {
+    "user": 1,
+    "created": "2018-03-29T13:51:37.260Z"
+  }
+}, {
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$100000$i7Q2mhnYclAY$bKsdvIiww9VmAEKSuw87AZ9binSsjAI2K8fWQQTXKAs=",
+    "last_login": "2018-03-23T13:54:39.616Z",
+    "is_superuser": true,
+    "username": "admin",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2018-03-08T11:00:19.029Z",
+    "groups": [],
+    "user_permissions": []
+  }
+}]
