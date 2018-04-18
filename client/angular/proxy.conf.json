@@ -1,7 +1,0 @@
-{
-  "/measurement/": {
-    "target": "ws://localhost:8000",
-    "secure": false,
-    "ws": true
-  }
-}
