@@ -1,4 +1,4 @@
-package dk.dtu.mobileai;
+package dk.dtu.mobileai.data;
 
 import java.util.List;
 

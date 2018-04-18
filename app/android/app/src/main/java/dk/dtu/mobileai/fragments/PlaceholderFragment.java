@@ -1,4 +1,4 @@
-package dk.dtu.mobileai;
+package dk.dtu.mobileai.fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -6,6 +6,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import dk.dtu.mobileai.R;
+import dk.dtu.mobileai.data.DataStore;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -37,7 +40,12 @@ public class PlaceholderFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_tabbed, container, false);
         TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-        textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+
+
+        DataStore dataStore = DataStore.getInstance();
+        String deviceName = dataStore.getDeviceName();
+        //textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+        textView.setText(deviceName);
         return rootView;
     }
 }

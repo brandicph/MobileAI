@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">DTU Photonics</string>
+    <string name="app_description">Created by Alexander Brandi\nM.Sc. Telecommunications\nalex@agilesquad.com</string>
+    <string name="agile_squad">Agile Squad</string>
+    <string name="agile_squad_url">https://agilesquad.dk</string>
 
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
@@ -38,6 +41,12 @@
 
     <!-- Example settings for Data & Sync -->
     <string name="pref_header_data_sync">Data &amp; sync</string>
+
+    <string name="pref_title_api_token">API Token</string>
+    <string name="pref_default_api_token">94629c425a5fd26dc172e3916e168975b648d80c</string>
+
+    <string name="pref_title_api_endpoint">API Endpoint</string>
+    <string name="pref_default_api_endpoint">http://10.16.165.151:8000/</string>
 
     <string name="pref_title_sync_frequency">Sync frequency</string>
     <string-array name="pref_sync_frequency_titles">

@@ -2,6 +2,28 @@
 
     <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to
          dismiss it. -->
+
+    <!-- NOTE: EditTextPreference accepts EditText attributes. -->
+    <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->
+
+    <EditTextPreference
+        android:defaultValue="@string/pref_default_api_token"
+        android:inputType="text"
+        android:key="api_token"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/pref_title_api_token" />
+
+    <EditTextPreference
+        android:defaultValue="@string/pref_default_api_endpoint"
+        android:inputType="textUri"
+        android:key="api_endpoint"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/pref_title_api_endpoint" />
+
     <!-- NOTE: ListPreference's summary should be set to its value by the activity code. -->
     <ListPreference
         android:defaultValue="180"

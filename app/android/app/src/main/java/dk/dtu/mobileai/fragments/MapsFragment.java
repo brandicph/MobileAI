@@ -1,28 +1,28 @@
-package dk.dtu.mobileai;
+package dk.dtu.mobileai.fragments;
 
-import android.location.Location;
-import android.location.LocationListener;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import android.support.annotation.Nullable;
 
+import dk.dtu.mobileai.R;
+import dk.dtu.mobileai.SettingsActivity;
+
 public class MapsFragment extends Fragment implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    private LatLng dtu = new LatLng(55.785574, 12.521381);
 
     public GoogleMap getMap() {
         return mMap;
@@ -59,10 +59,23 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         mMap = googleMap;
 
         // Add a marker in Sydney and move the camera
-        LatLng dtu = new LatLng(55.785574, 12.521381);
         mMap.addMarker(new MarkerOptions().position(dtu).title("DTU"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(dtu));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+        //mMap.moveCamera(CameraUpdateFactory.newLatLng(dtu));
+
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(dtu)
+                .zoom(14)
+                //.bearing(90)
+                //.tilt(30)
+                .build();
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000, null);
+
+        try {
+            mMap.setMyLocationEnabled(true);
+        } catch (SecurityException e){
+
+        }
+
     }
 }
 
