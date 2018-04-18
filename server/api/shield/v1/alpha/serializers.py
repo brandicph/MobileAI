@@ -26,8 +26,9 @@ class EntitySerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 class LocationSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
     url = serializers.ReadOnlyField()
-    
+
     class Meta:
         model = Location
         fields = '__all__'

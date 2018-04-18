@@ -4,6 +4,9 @@ import android.content.Context;
 
 import java.io.IOException;
 
+import dk.dtu.mobileai.modules.CellularModule;
+import dk.dtu.mobileai.modules.InfoModule;
+import dk.dtu.mobileai.modules.LocationModule;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -42,7 +45,7 @@ public class DataStore {
     private static OkHttpClient.Builder builder = new OkHttpClient.Builder().addInterceptor(interceptor);
     private static OkHttpClient client = builder.build();
 
-    public static final String BASE_URL = "http://192.168.1.139:8000/";
+    public static final String BASE_URL = "http://192.168.88.228:8000/";
     public static final Retrofit retrofit = new Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())

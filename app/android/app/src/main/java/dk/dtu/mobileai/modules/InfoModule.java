@@ -1,4 +1,4 @@
-package dk.dtu.mobileai;
+package dk.dtu.mobileai.modules;
 
 import android.content.Context;
 import android.util.Log;

@@ -51,4 +51,4 @@ class LocationViewSet(viewsets.ModelViewSet):
     filter_fields = '__all__'
 
     def get_queryset(self):
-        return Location.objects.filter(entity=self.kwargs['entity_pk']).order_by('created_at')
+        return Location.objects.filter(entity=self.kwargs['entity_pk']).order_by('-created_at')

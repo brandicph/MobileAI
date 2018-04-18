@@ -1,4 +1,4 @@
-package dk.dtu.mobileai;
+package dk.dtu.mobileai.modules;
 
 import android.content.Context;
 import android.location.Location;
@@ -9,6 +9,8 @@ import android.util.Log;
 
 import java.text.DecimalFormat;
 
+import dk.dtu.mobileai.DataStore;
+import dk.dtu.mobileai.IApiEndpoint;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
