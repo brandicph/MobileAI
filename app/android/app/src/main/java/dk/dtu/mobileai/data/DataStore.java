@@ -96,4 +96,16 @@ public class DataStore {
         return mCellularModule.getDeviceName();
     }
 
+    public String getApiEntityId(){
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
+        String api_entity_id = settings.getString("api_entity_id", mContext.getString(R.string.pref_default_api_entity_id));
+        return api_entity_id;
+    }
+
+
+    public boolean getApiSync(){
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
+        boolean api_sync = settings.getBoolean("api_sync", true);
+        return api_sync;
+    }
 }

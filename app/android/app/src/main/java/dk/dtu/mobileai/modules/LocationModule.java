@@ -5,6 +5,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.util.Log;
 
 import java.text.DecimalFormat;
@@ -134,31 +135,38 @@ public class LocationModule implements LocationListener {
     public void updateCoordinates(){
         Log.d("LocationUpdate", "latitude: " + latitude + " longitude: " + longitude);
 
-        IApiEndpoint apiService = DataStore.getInstance().retrofit.create(IApiEndpoint.class);
+        DataStore dataStore = DataStore.getInstance();
 
-        dk.dtu.mobileai.models.Location loc = new dk.dtu.mobileai.models.Location();
-        loc.setEntity("http://192.168.1.139:8000/entities/1/");
 
-        DecimalFormat df = new DecimalFormat("#.######");
+        if (dataStore.getApiSync()){
+            IApiEndpoint apiService = dataStore.retrofit.create(IApiEndpoint.class);
 
-        loc.setLatitude(Double.valueOf(df.format(latitude)));
-        loc.setLongitude(Double.valueOf(df.format(longitude)));
-        Call<dk.dtu.mobileai.models.Location> call = apiService.createLocation(1, loc);
+            dk.dtu.mobileai.models.Location loc = new dk.dtu.mobileai.models.Location();
+            loc.setEntity(dataStore.getApiEndpoint() + "entities/" + dataStore.getApiEntityId() + "/");
 
-        try {
-            call.enqueue(new Callback<dk.dtu.mobileai.models.Location>() {
-                @Override
-                public void onResponse(Call<dk.dtu.mobileai.models.Location> call, Response<dk.dtu.mobileai.models.Location> response) {
-                    Log.d(TAG, response.toString());
-                }
+            DecimalFormat df = new DecimalFormat("#.######");
 
-                @Override
-                public void onFailure(Call<dk.dtu.mobileai.models.Location> call, Throwable t) {
-                    Log.d(TAG, t.toString());
-                }
-            });
-        } catch (Exception e ){
-            Log.e(TAG, e.getMessage());
+            loc.setLatitude(Double.valueOf(df.format(latitude)));
+            loc.setLongitude(Double.valueOf(df.format(longitude)));
+
+            Call<dk.dtu.mobileai.models.Location> call = apiService.createLocation(DataStore.getInstance().getApiEntityId(), loc);
+
+            try {
+                call.enqueue(new Callback<dk.dtu.mobileai.models.Location>() {
+                    @Override
+                    public void onResponse(Call<dk.dtu.mobileai.models.Location> call, Response<dk.dtu.mobileai.models.Location> response) {
+                        Log.d(TAG, response.toString());
+                    }
+
+                    @Override
+                    public void onFailure(Call<dk.dtu.mobileai.models.Location> call, Throwable t) {
+                        Log.d(TAG, t.toString());
+                    }
+                });
+            } catch (Exception e ){
+                Log.e(TAG, e.getMessage());
+            }
         }
+
     }
 }

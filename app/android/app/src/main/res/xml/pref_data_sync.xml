@@ -6,6 +6,21 @@
     <!-- NOTE: EditTextPreference accepts EditText attributes. -->
     <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->
 
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="api_sync"
+        android:summary="@string/pref_description_api_sync"
+        android:title="@string/pref_title_api_sync" />
+
+    <EditTextPreference
+        android:defaultValue="@string/pref_default_api_entity_id"
+        android:inputType="text"
+        android:key="api_entity_id"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/pref_title_api_entity_id" />
+
     <EditTextPreference
         android:defaultValue="@string/pref_default_api_token"
         android:inputType="text"

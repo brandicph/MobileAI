@@ -42,6 +42,12 @@
     <!-- Example settings for Data & Sync -->
     <string name="pref_header_data_sync">Data &amp; sync</string>
 
+    <string name="pref_title_api_sync">Enable API sync</string>
+    <string name="pref_description_api_sync">Sync data with the API</string>
+
+    <string name="pref_title_api_entity_id">API Entity ID</string>
+    <string name="pref_default_api_entity_id">1</string>
+
     <string name="pref_title_api_token">API Token</string>
     <string name="pref_default_api_token">94629c425a5fd26dc172e3916e168975b648d80c</string>
 

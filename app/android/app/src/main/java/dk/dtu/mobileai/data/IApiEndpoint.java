@@ -19,11 +19,11 @@ public interface IApiEndpoint {
     Call<Entity> getEntity(@Path("entities") String id);
 
     @GET("entities/{id}/")
-    Call<List<Entity>> getEntities(@Path("id") int id);
+    Call<List<Entity>> getEntities(@Path("id") String id);
 
     @POST("entities/")
     Call<Entity> createEntity(@Body Entity user);
 
     @POST("entities/{id}/locations/")
-    Call<Location> createLocation(@Path("id") int id, @Body Location location);
+    Call<Location> createLocation(@Path("id") String id, @Body Location location);
 }
