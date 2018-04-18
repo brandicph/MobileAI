@@ -1,10 +1,10 @@
 from rest_framework import filters, mixins
 import django_filters.rest_framework
 from django.contrib.auth.models import User, Group
-from .models import Entity, Location
+from .models import Entity, Location, Measurement
 from rest_framework import viewsets, pagination
 from rest_framework.response import Response
-from .serializers import UserSerializer, GroupSerializer, EntitySerializer, LocationSerializer
+from .serializers import UserSerializer, GroupSerializer, EntitySerializer, LocationSerializer, MeasurementSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -52,3 +52,17 @@ class LocationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Location.objects.filter(entity=self.kwargs['entity_pk']).order_by('-created_at')
+
+
+class MeasurementViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Measurements to be viewed or edited.
+    """
+    queryset = Measurement.objects.all()
+    serializer_class = MeasurementSerializer
+    filter_backends = (filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend,)
+    search_fields = '__all__'
+    filter_fields = '__all__'
+
+    def get_queryset(self):
+        return Measurement.objects.filter(entity=self.kwargs['entity_pk']).order_by('-created_at')

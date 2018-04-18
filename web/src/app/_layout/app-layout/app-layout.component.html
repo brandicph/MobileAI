@@ -1,0 +1,88 @@
+<!--
+<nav class="topnav" [ngClass]="{'responsive': showTopNav}">
+  <a href="/" class="logo">Shield</a>
+  <div class="menu">
+    <a href="/devices">Devices</a>
+    <a href="/models">Models</a>
+    <a href="/measurements">Measurements</a>
+    <a href="/contact">Contact</a>
+    <a href="javascript:void(0);" class="icon" (click)="showTopNav = !showTopNav">&#9776;</a>
+  </div>
+</nav>
+-->
+
+<div class="example-container" [class.example-is-mobile]="mobileQuery.matches">
+  <mat-toolbar color="primary" class="example-toolbar">
+    <button mat-icon-button (click)="snav.toggle()"><mat-icon>menu</mat-icon></button>
+    <h1 class="example-app-name">DTU Photonics</h1>
+  </mat-toolbar>
+
+  <mat-sidenav-container class="example-sidenav-container"
+                         [style.marginTop.px]="mobileQuery.matches ? 56 : 0">
+    <mat-sidenav #snav [mode]="mobileQuery.matches ? 'over' : 'side'"
+                 [fixedInViewport]="mobileQuery.matches" fixedTopGap="56">
+      <mat-nav-list>
+        <mat-list-item routerLink="." *ngFor="let nav of fillerNav">
+          <mat-icon matListIcon>folder</mat-icon>
+          <h4 matLine>{{nav}}</h4>
+          <p matLine class="demo-2"> something </p>
+        </mat-list-item>
+      </mat-nav-list>
+    </mat-sidenav>
+
+    <mat-sidenav-content>
+      <router-outlet></router-outlet>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>
+
+<!--
+<mat-sidenav-container class="example-container">
+  <mat-sidenav mode="side" opened>
+    <div id="sidebar-container" class="sidebar column" [ngClass]="{'slim': slimSidebar}">
+      <div class="top-left"><img src="assets/shield.svg" alt="shield" height="30"></div>
+      <div class="bottom">
+        <ul class="navigation">
+          <li><h6 class="header">General</h6></li>
+          <li><a class="link active" href="#connections"><i class="batch-icon batch-icon-browser-alt"></i><span class="text">Dashboard</span></a></li>
+          <li><a class="link" href="#connections"><i class="batch-icon batch-icon-layout-content-left"></i><span class="text">Layout</span></a></li>
+          <li><a class="link" href="#connections"><i class="batch-icon batch-icon-star"></i><span class="text">Starter Kit</span></a></li>
+          <li><h6 class="header">Apps</h6></li>
+          <li><a class="link" href="#connections"><i class="batch-icon batch-icon-unite"></i><span class="text">Scraper</span></a></li>
+          <li><a class="link" href="#connections"><i class="batch-icon batch-icon-users"></i><span class="text">Social Advocacy</span></a></li>
+          <li><a class="link" href="#connections"><i class="batch-icon batch-icon-search"></i><span class="text">Search Results</span></a></li>
+          <li><a class="link" href="#connections"><i class="batch-icon batch-icon-spam"></i><span class="text">Risk Management</span></a></li>
+          <li><a class="link" href="#connections"><i class="batch-icon batch-icon-clock"></i><span class="text">Social Automation</span></a></li>
+          <li><a class="link" href="#connections"><i class="batch-icon batch-icon-split"></i><span class="text">Transformation</span></a></li>
+          <li><a class="link" href="#connections"><i class="batch-icon batch-icon-shuffle"></i><span class="text">Cross Poster</span></a></li>
+          <li><a class="link" href="#connections"><i class="batch-icon batch-icon-curlybrace"></i><span class="text">Create App</span></a></li>
+          <li><a class="link" href="#connections"><i class="batch-icon batch-icon-add"></i><span class="text">Add New</span></a></li>
+        </ul>
+      </div>
+    </div>
+    <div id="main-container" class="main column">
+      <div class="top-right dark">
+        <div class="utils">
+          <ul class="navigation">
+            <li class="sidebar-button" (click)="slimSidebar = !slimSidebar"><i class="batch-icon batch-icon-expand-alt"></i></li>
+          </ul>
+        </div>
+        <div class="menu">
+          <ul class="navigation">
+            <li>Alexander Brandi</li>
+            <li><i class="batch-icon batch-icon-user-alt"></i></li>
+            <li><i class="batch-icon batch-icon-locked"></i></li>
+            <li><i class="batch-icon batch-icon-timeline"></i></li>
+          </ul>
+        </div>
+      </div>
+      <div class="bottom">
+        <router-outlet></router-outlet>
+      </div>
+    </div>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+-->

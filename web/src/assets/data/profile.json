@@ -1,0 +1,20 @@
+[
+    {
+        "id": 1,
+        "name": "OnePlus ONEPLUS A5000",
+        "imei": "866265033823578",
+        "token": "94629c425a5fd26dc172e3916e168975b648d80c"
+    },
+    {
+        "id": 2,
+        "name": "Nexus X5",
+        "imei": "49015420323751",
+        "token": "592fa951582294b5fa4538886c99a595ebfb2831"
+    },
+    {
+        "id": 3,
+        "name": "Samsung Galaxy S8",
+        "imei": "98956753456788",
+        "token": "e3916e168975b648dc4538886c99a595ebac8239"
+    }
+]

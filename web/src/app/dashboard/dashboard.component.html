@@ -1,0 +1,246 @@
+<!--
+<section class="overview">
+    <div class="grid three">
+        <div class="item">boo</div>
+        <div class="item">shoo</div>
+        <div class="item">clue</div>
+        <div class="item">boo <br> boo </div>
+        <div class="item">shoo</div>
+        <div class="item">clue</div>
+    </div>
+</section>
+
+
+<section class="gaugs">
+    <div class="grid two">
+        <div class="item">boo</div>
+        <div class="item">shoo</div>
+        <div class="item">clue</div>
+        <div class="item">boo <br> boo </div>
+        <div class="item">shoo</div>
+        <div class="item">clue</div>
+        <div class="item">boo <br> boo </div>
+        <div class="item">shoo</div>
+        <div class="item">clue</div>
+        <div class="item">boo <br> boo </div>
+        <div class="item">shoo</div>
+        <div class="item">clue</div>
+    </div>
+</section>
+-->
+
+<section class="dark">
+    <div class="grid one">
+        <div class="item bg-transparent">
+          <div class="header">
+            Graph
+          </div>
+          <div class="content" #myIdentifier>
+            <ngx-charts-line-chart
+              [view]="view"
+              #graphWrapper
+              class="chart-container"
+              [scheme]="colorScheme"
+              [schemeType]="schemeType"
+              [results]="multi"
+              [animations]="animations"
+              [legend]="showLegend"
+              [legendTitle]="legendTitle"
+              [gradient]="gradient"
+              [xAxis]="showXAxis"
+              [yAxis]="showYAxis"
+              [showXAxisLabel]="showXAxisLabel"
+              [showYAxisLabel]="showYAxisLabel"
+              [xAxisLabel]="xAxisLabel"
+              [yAxisLabel]="yAxisLabel"
+              [autoScale]="autoScale"
+              [xScaleMin]="xScaleMin"
+              [xScaleMax]="xScaleMax"
+              [yScaleMin]="yScaleMin"
+              [yScaleMax]="yScaleMax"
+              [timeline]="timeline"
+              [showGridLines]="showGridLines"
+              [curve]="curve"
+              [rangeFillOpacity]="rangeFillOpacity"
+              [roundDomains]="roundDomains"
+              [tooltipDisabled]="tooltipDisabled">
+              <ng-template #tooltipTemplate let-model="model">
+                <h1>
+                  <strong style="font-weight: 900;">New connections</strong>
+                </h1>
+                <h2 *ngFor="let connection of getConnections(model)">
+                  {{connection.first_name}} {{connection.last_name}}
+                </h2>
+              </ng-template>
+            </ngx-charts-line-chart>
+          </div>
+        </div>
+    </div>
+</section>
+
+<section class="gaugs">
+    <div class="grid one">
+        <div class="item">
+          <div class="header">
+            Entities
+          </div>
+          <div class="content">
+            <ngx-datatable
+              class="dark"
+              [rows]="rows"
+              [columnMode]="'force'"
+              [headerHeight]="50"
+              [footerHeight]="50"
+              [rowHeight]="'auto'"
+              [limit]="10"
+              [selected]="selected"
+              [selectionType]="'checkbox'"
+              [selectAllRowsOnPage]="false"
+              [displayCheck]="displayCheck"
+              (activate)="onActivate($event)"
+              (select)='onSelect($event)'>
+              <ngx-datatable-column
+                [width]="30"
+                [sortable]="false"
+                [canAutoResize]="false"
+                [draggable]="false"
+                [resizeable]="false"
+                [headerCheckboxable]="true"
+                [checkboxable]="true">
+              </ngx-datatable-column>
+              <ngx-datatable-column name="ID"></ngx-datatable-column>
+              <ngx-datatable-column name="Name"></ngx-datatable-column>
+              <ngx-datatable-column name="IMEI"></ngx-datatable-column>
+              <ngx-datatable-column name="Token"></ngx-datatable-column>
+            </ngx-datatable>
+        </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="gaugs">
+    <div class="grid one">
+        <div class="item">
+          <div class="header">
+            Header
+          </div>
+          <div class="content">
+            <ngx-charts-pie-grid
+              [view]="view"
+              [scheme]="colorScheme"
+              [results]="single"
+              (select)="onSelect($event)">
+            </ngx-charts-pie-grid>
+          </div>
+        </div>
+        <div class="item">
+          <div class="header">
+            Header
+          </div>
+          <div class="content">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis quam massa, ornare at turpis quis, varius pulvinar lorem. Morbi eleifend nisi eget viverra fermentum. Vivamus interdum dui quis orci placerat semper. Morbi lobortis ex sit amet risus cursus
+              pharetra. Interdum et malesuada fames ac ante ipsum primis in faucibus. Etiam luctus leo augue, non facilisis nunc aliquam sed. Aliquam erat volutpat. Nam laoreet cursus nunc, id tincidunt justo. Nullam elit magna, finibus at aliquam ut, blandit
+              vel magna. Phasellus ullamcorper urna a leo luctus vestibulum. Duis posuere leo ac lectus auctor, convallis aliquam odio gravida.</p>
+              <br/>
+            <p>Sed porttitor turpis quis est pellentesque, in accumsan risus porta. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Maecenas quis elit sed felis dapibus sodales ut auctor nibh. Mauris dapibus diam in ante scelerisque
+              ultrices. Nam tincidunt lorem vel ultricies sodales. Nullam facilisis placerat pulvinar. Nullam in arcu urna. Pellentesque tempus lorem et ligula viverra convallis. Integer id vehicula quam, sit amet dictum urna. Praesent pellentesque hendrerit
+              risus non pharetra. In a libero finibus, hendrerit justo quis, consequat nunc. Sed iaculis efficitur nunc sagittis hendrerit. Praesent ligula augue, malesuada quis pretium semper, facilisis non quam. Phasellus ac placerat mi. Quisque ac fermentum
+              tellus.</p>
+          </div>
+        </div>
+    </div>
+</section>
+
+<!--
+<section class="gaugs">
+    <div class="grid three">
+        <div class="item">
+          <div class="header">
+            Header
+          </div>
+          <ngx-charts-gauge
+            [view]="view"
+            [legend]="showLegend"
+            [legendTitle]="legendTitle"
+            [results]="single"
+            [animations]="animations"
+            [textValue]="gaugeTextValue"
+            [scheme]="colorScheme"
+            [min]="gaugeMin"
+            [max]="gaugeMax"
+            [units]="gaugeUnits"
+            [angleSpan]="gaugeAngleSpan"
+            [startAngle]="gaugeStartAngle"
+            [showAxis]="gaugeShowAxis"
+            [bigSegments]="gaugeLargeSegments"
+            [smallSegments]="gaugeSmallSegments"
+            [margin]="margin ? [marginTop, marginRight, marginBottom, marginLeft] : null"
+            [tooltipDisabled]="tooltipDisabled"
+            (select)="select($event)"
+            (legendLabelClick)="onLegendLabelClick($event)">
+          </ngx-charts-gauge>
+        </div>
+    </div>
+</section>
+-->
+<!--
+<section class="models">
+    <div class="grid three">
+      <div class="item bg-gradient">
+        <ngx-trend
+          [data]="[0, 10, 5, 22, 3.6, 11]"
+          autoDraw="true"
+          [gradient]="['#F0F', '#FFF']"
+          smooth="true" radius="20" strokeWidth="4"
+          width="200"
+          height="200"
+          autoDrawDuration="3000"
+          autoDrawEasing="ease-in"
+        ></ngx-trend>
+      </div>
+      <div class="item bg-gradient bg-secondary">
+        <ngx-trend
+          [data]="[0, 2, 5, 10, 3.6, 11]"
+          autoDraw="true"
+          [gradient]="['#FFF', '#FFF']"
+          smooth="true" radius="20" strokeWidth="4"
+          width="200"
+          height="200"
+          autoDrawDuration="3000"
+          autoDrawEasing="ease-in"
+        ></ngx-trend>
+      </div>
+      <div class="item bg-gradient">
+        <ngx-trend
+          [data]="[0, 10, 5, 22, 3.6, 11]"
+          autoDraw="true"
+          [gradient]="['#F0F', '#FFF']"
+          smooth="true" radius="20" strokeWidth="4"
+          width="200"
+          height="200"
+          autoDrawDuration="3000"
+          autoDrawEasing="ease-in"
+        ></ngx-trend>
+      </div>
+    </div>
+</section>
+-->
+<!--
+<section class="gaugs">
+    <div class="grid two">
+        <div class="item">boo</div>
+        <div class="item">shoo</div>
+        <div class="item">clue</div>
+        <div class="item">boo <br> boo </div>
+        <div class="item">shoo</div>
+        <div class="item">clue</div>
+        <div class="item">boo <br> boo </div>
+        <div class="item">shoo</div>
+        <div class="item">clue</div>
+        <div class="item">boo <br> boo </div>
+        <div class="item">shoo</div>
+        <div class="item">clue</div>
+    </div>
+</section>
+-->

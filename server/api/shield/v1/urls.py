@@ -27,6 +27,7 @@ router.register(r'entities', views_alpha.EntityViewSet)
 
 entity_router = routers.NestedSimpleRouter(router, r'entities', lookup='entity')
 entity_router.register(r'locations', views_alpha.LocationViewSet, base_name='locations')
+entity_router.register(r'measurements', views_alpha.MeasurementViewSet, base_name='measurements')
 
 
 # Wire up our API using automatic URL routing.

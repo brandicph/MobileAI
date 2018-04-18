@@ -21,3 +21,16 @@ class Location(models.Model):
 
     def __str__(self):
         return "{},{}".format(self.longitude, self.latitude)
+
+
+class Measurement(models.Model):
+    entity = models.ForeignKey(Entity, on_delete=models.CASCADE)
+    rsrp = models.FloatField()
+    rsrq = models.FloatField()
+    rssi = models.FloatField()
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+
+    def __str__(self):
+        return "{},{},{}".format(self.rsrp, self.rsrq, self.rssi)

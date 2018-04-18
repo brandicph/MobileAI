@@ -1,0 +1,205 @@
+.grid {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  display: flex;
+
+  & > .item {
+    box-shadow: 0 1px 2px rgba(#000, 0.1);
+
+    .header {
+      position: relative;
+      color: #07a7e3;
+      background-color: transparent;
+      text-transform: uppercase;
+      font-size: 16px;
+      font-weight: 400;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.09);
+      padding-top: 2.5rem;
+      margin-left: 1.5rem;
+      margin-right: 1.5rem;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .header {
+      padding: 1.5rem 0 0.5rem;
+      margin-bottom: 0;
+      //background-color: rgba(0,0,0,.03);
+      border-bottom: 1px solid rgba(0,0,0,.075);
+    }
+
+    .content {
+      padding-top: 0.5rem;
+      padding-bottom: 1.5rem;
+      margin-left: 1.5rem;
+      margin-right: 1.5rem;
+
+      color: #72848c;
+      font-family: 'Montserrat', sans-serif !important;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.618;
+      letter-spacing: 0.03em;
+    }
+  }
+
+  &.one > .item,
+  .item {
+    width: 100%;
+    //padding: 1%;
+    min-height: 100px;
+    //border-radius: 10px;
+    border-radius: 0.4167rem;
+    //padding: 5px;
+    margin: 15px;
+
+    &:nth-of-type(odd):not(.bg-gradient) {
+      background: #FFFFFF;
+    }
+
+    &:nth-of-type(even) {
+      background: #FBFBFB;
+    }
+  }
+
+  &.two > .item {
+    width: 47.5%;
+    background: #FFFFFF;
+
+    &:nth-child(10):not(.bg-gradient),
+    &:nth-child(11):not(.bg-gradient),
+    &:nth-child(2):not(.bg-gradient),
+    &:nth-child(3):not(.bg-gradient),
+    &:nth-child(6):not(.bg-gradient),
+    &:nth-child(7):not(.bg-gradient) {
+      background: #FBFBFB;
+    }
+  }
+
+  &.three > .item {
+    width: 30%;
+    flex: 1;
+  }
+
+  .item.bg-gradient {
+    color: #FFFFFF !important;
+    background: #07a7e3;
+    background: -moz-linear-gradient(-45deg, #07a7e3 0%, #32dac3 100%);
+    background: -webkit-linear-gradient(-45deg, #07a7e3 0%, #32dac3 100%);
+    background: linear-gradient(135deg, #07a7e3 0%, #32dac3 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=$qp-color-1, endColorstr=$qp-color-2,GradientType=1);
+    -webkit-transition: opacity 0.2s ease-out;
+    -moz-transition: opacity 0.2s ease-out;
+    -o-transition: opacity 0.2s ease-out;
+    transition: opacity 0.2s ease-out;
+  }
+
+  .item.bg-secondary.bg-gradient {
+    color: #FFFFFF !important;
+    background: #4f5b60;
+    background: -moz-linear-gradient(-45deg, #4f5b60 0%, #97a9b2 100%);
+    background: -webkit-linear-gradient(-45deg, #4f5b60 0%, #97a9b2 100%);
+    background: linear-gradient(135deg, #4f5b60 0%, #97a9b2 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=$qp-color-1, endColorstr=$qp-color-2,GradientType=1);
+    -webkit-transition: opacity 0.2s ease-out;
+    -moz-transition: opacity 0.2s ease-out;
+    -o-transition: opacity 0.2s ease-out;
+    transition: opacity 0.2s ease-out;
+    -webkit-transition: width 0.3s ease-in-out;
+    -moz-transition: width 0.3s ease-in-out;
+    -o-transition: width 0.3s ease-in-out;
+    transition: width 0.3s ease-in-out;
+  }
+
+  .item.bg-transparent {
+    color: #FFF !important;
+    background: transparent !important;
+  }
+}
+
+
+
+
+
+
+.ngx-datatable.dark {
+  box-shadow: none;
+  background: transparent;
+  border: none;
+  color: #72809b;
+  font-size: 13px; }
+  .ngx-datatable.dark .datatable-header {
+    background: transparent;
+    color: #72809b; }
+    .ngx-datatable.dark .datatable-header .datatable-header-cell {
+      text-align: left;
+      padding: .5rem 1.2rem;
+      font-weight: bold; }
+      .ngx-datatable.dark .datatable-header .datatable-header-cell .datatable-header-cell-label {
+        line-height: 24px; }
+  .ngx-datatable.dark .datatable-body {
+    background: transparent; }
+    .ngx-datatable.dark .datatable-body .datatable-body-row {
+      border-top: 1px solid #F3F3F3; }
+      .ngx-datatable.dark .datatable-body .datatable-body-row .datatable-body-cell {
+        text-align: left;
+        padding: .5rem 1.2rem;
+        vertical-align: top; }
+      .ngx-datatable.dark .datatable-body .datatable-body-row:hover {
+        background: #F3F3F3;
+        transition-property: background;
+        transition-duration: .3s;
+        transition-timing-function: linear; }
+      .ngx-datatable.dark .datatable-body .datatable-body-row:focus {
+        background-color: #232837; }
+      .ngx-datatable.dark .datatable-body .datatable-body-row.active {
+        background: #07a7e3;
+        background: -moz-linear-gradient(-45deg, #07a7e3 0%, #32dac3 100%);
+        background: -webkit-linear-gradient(-45deg, #07a7e3 0%, #32dac3 100%);
+        background: linear-gradient(135deg, #07a7e3 0%, #32dac3 100%);
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=$qp-color-1, endColorstr=$qp-color-2,GradientType=1);
+        -webkit-transition: opacity 0.2s ease-out;
+        -moz-transition: opacity 0.2s ease-out;
+        -o-transition: opacity 0.2s ease-out;
+        transition: opacity 0.2s ease-out;
+        -webkit-transition: width 0.3s ease-in-out;
+        -moz-transition: width 0.3s ease-in-out;
+        -o-transition: width 0.3s ease-in-out;
+        transition: width 0.3s ease-in-out;
+        color: #FFF; }
+  .ngx-datatable.dark .datatable-footer {
+    background: transparent;
+    color: #444444;
+    margin-top: -1px; }
+    .ngx-datatable.dark .datatable-footer .page-count {
+      line-height: 50px;
+      height: 50px;
+      padding: 0 1.2rem; }
+    .ngx-datatable.dark .datatable-footer .datatable-pager {
+      margin: 0 10px;
+      vertical-align: top; }
+      .ngx-datatable.dark .datatable-footer .datatable-pager ul li {
+        margin: 10px 0px; }
+        .ngx-datatable.dark .datatable-footer .datatable-pager ul li:not(.disabled).active a,
+        .ngx-datatable.dark .datatable-footer .datatable-pager ul li:not(.disabled):hover a {
+          background-color: #F3F3F3;
+          font-weight: bold; }
+      .ngx-datatable.dark .datatable-footer .datatable-pager a {
+        height: 22px;
+        min-width: 24px;
+        line-height: 22px;
+        padding: 0;
+        border-radius: 3px;
+        margin: 0 3px;
+        text-align: center;
+        vertical-align: top;
+        text-decoration: none;
+        vertical-align: bottom;
+        color: #72809b; }
+      .ngx-datatable.dark .datatable-footer .datatable-pager .datatable-icon-left,
+      .ngx-datatable.dark .datatable-footer .datatable-pager .datatable-icon-skip,
+      .ngx-datatable.dark .datatable-footer .datatable-pager .datatable-icon-right,
+      .ngx-datatable.dark .datatable-footer .datatable-pager .datatable-icon-prev {
+        font-size: 18px;
+        line-height: 27px;
+        padding: 0 3px; }
