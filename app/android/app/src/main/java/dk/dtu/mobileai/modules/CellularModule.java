@@ -9,7 +9,18 @@ import android.util.Log;
 
 import com.jjoe64.graphview.series.DataPoint;
 
+import java.text.DecimalFormat;
 import java.util.List;
+
+import dk.dtu.mobileai.data.DataStore;
+import dk.dtu.mobileai.data.IApiEndpoint;
+import dk.dtu.mobileai.listeners.IOnCellularModuleChangedListener;
+import dk.dtu.mobileai.listeners.OnCellularModuleChangedListener;
+import dk.dtu.mobileai.models.Location;
+import dk.dtu.mobileai.models.Measurement;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static android.content.Context.TELEPHONY_SERVICE;
 
@@ -45,14 +56,16 @@ parts[13] = gsm|lte
 parts[14] = _not reall sure what this number is_
  */
 
-public class CellularModule extends PhoneStateListener {
+public class CellularModule extends PhoneStateListener implements IOnCellularModuleChangedListener {
 
     private static final String TAG = "CellularModule";
+
+    private static OnCellularModuleChangedListener mListener;
 
     private Context mContext;
     private TelephonyManager mTelephonyManager;
 
-    List<CellInfo> cellInfoList;
+    private List<CellInfo> cellInfoList;
     int cellSig, cellID, cellMcc, cellMnc, cellPci, cellTac = 0;
     String ueIMSI, ueIMEI, ueDeviceName = null;
 
@@ -79,7 +92,9 @@ public class CellularModule extends PhoneStateListener {
 
         try {
             cellInfoList = mTelephonyManager.getAllCellInfo();
-            for (CellInfo cellInfo : cellInfoList) {
+            for (int index = 0; index < cellInfoList.size(); index++) {
+                CellInfo cellInfo = cellInfoList.get(index);
+
                 if (cellInfo instanceof CellInfoLte) {
                     // cast to CellInfoLte and call all the CellInfoLte methods you need
                     // gets RSRP cell signal strength:
@@ -106,11 +121,63 @@ public class CellularModule extends PhoneStateListener {
                     // Gets the Device Name
                     ueDeviceName = getDeviceName();
 
-                    Log.d(TAG, ueDeviceName);
                     // Gets the IMSI
                     ueIMSI = mTelephonyManager.getSubscriberId();
+
+                    DataStore dataStore = DataStore.getInstance();
+
+                    int cellRsrp = ((CellInfoLte) cellInfo).getCellSignalStrength().getRsrp();
+                    int cellRsrq = ((CellInfoLte) cellInfo).getCellSignalStrength().getRsrq();
+                    int cellLevel = ((CellInfoLte) cellInfo).getCellSignalStrength().getLevel();
+                    int cellAsu = ((CellInfoLte) cellInfo).getCellSignalStrength().getAsuLevel();
+                    int cellRssnr = ((CellInfoLte) cellInfo).getCellSignalStrength().getRssnr();
+                    int cellCqi = ((CellInfoLte) cellInfo).getCellSignalStrength().getCqi();
+
+                    if (dataStore.getApiSync()){
+                        IApiEndpoint apiService = dataStore.retrofit.create(IApiEndpoint.class);
+
+                        Measurement measurement = new Measurement();
+                        measurement.setEntity(dataStore.getApiEndpoint() + "entities/" + dataStore.getApiEntityId() + "/");
+
+                        measurement.setAntenna(index);
+                        measurement.setAsu(cellAsu);
+                        measurement.setCellId(cellID);
+                        measurement.setLevel(cellLevel);
+                        measurement.setMcc(cellMcc);
+                        measurement.setMnc(cellMnc);
+                        measurement.setCqi(cellCqi);
+                        measurement.setPci(cellPci);
+                        measurement.setRsrp(cellRsrp);
+                        measurement.setRsrq(cellRsrq);
+                        measurement.setRssnr(cellRssnr);
+                        measurement.setSignal(cellSig);
+                        measurement.setTac(cellTac);
+
+                        Call<Measurement> call = apiService.createMeasurement(DataStore.getInstance().getApiEntityId(), measurement);
+
+                        try {
+                            call.enqueue(new Callback<Measurement>() {
+                                @Override
+                                public void onResponse(Call<Measurement> call, Response<Measurement> response) {
+                                    Log.d(TAG, response.toString());
+                                }
+
+                                @Override
+                                public void onFailure(Call<Measurement> call, Throwable t) {
+                                    Log.d(TAG, t.toString());
+                                }
+                            });
+                        } catch (Exception e ){
+                            Log.e(TAG, e.getMessage());
+                        }
+                    }
+
                 }
             }
+            if (mListener != null){
+                mListener.OnCellularModuleChanged(this);
+            }
+            DataStore.getInstance().notifyDataChanged();
         } catch (SecurityException e){
             //RequestMultiplePermission();
         } catch (Exception e) {
@@ -119,6 +186,10 @@ public class CellularModule extends PhoneStateListener {
 
         super.onSignalStrengthsChanged(signalStrength);
 
+    }
+
+    public List<CellInfo> getCellInfoList(){
+        return cellInfoList;
     }
 
     public String getDeviceName() {
@@ -131,6 +202,13 @@ public class CellularModule extends PhoneStateListener {
         }
     }
 
+    public String getIMEI() {
+        return ueIMEI;
+    }
+
+    public String getIMSI() {
+        return ueIMSI;
+    }
 
     private String capitalize(String s) {
         if (s == null || s.length() == 0) {
@@ -142,5 +220,10 @@ public class CellularModule extends PhoneStateListener {
         } else {
             return Character.toUpperCase(first) + s.substring(1);
         }
+    }
+
+    @Override
+    public void setOnCellularModuleChanged(OnCellularModuleChangedListener listener) {
+        mListener = listener;
     }
 }

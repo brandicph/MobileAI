@@ -25,9 +25,27 @@ class Location(models.Model):
 
 class Measurement(models.Model):
     entity = models.ForeignKey(Entity, on_delete=models.CASCADE)
-    rsrp = models.FloatField()
-    rsrq = models.FloatField()
-    rssi = models.FloatField()
+
+    # antenna no
+    antenna = models.IntegerField()
+
+    # strength
+    signal = models.IntegerField()
+    level = models.IntegerField()
+    asu = models.IntegerField()
+
+    # reference
+    rsrp = models.IntegerField()
+    rsrq = models.IntegerField()
+    rssnr = models.IntegerField()
+    cqi = models.IntegerField()
+
+    # cell info
+    cell_id = models.IntegerField()
+    mcc = models.IntegerField()
+    mnc = models.IntegerField()
+    pci = models.IntegerField()
+    tac = models.IntegerField()
 
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)

@@ -27,8 +27,10 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import dk.dtu.mobileai.adapters.SectionsPagerAdapter;
 import dk.dtu.mobileai.data.DataStore;
 import dk.dtu.mobileai.fragments.MapsFragment;
+import dk.dtu.mobileai.fragments.NetworkFragment;
 import dk.dtu.mobileai.fragments.PlaceholderFragment;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
@@ -111,6 +113,7 @@ public class TabbedActivity extends AppCompatActivity {
             Snackbar.make(findViewById(R.id.main_content), "All Permissions Granted Successfully", Snackbar.LENGTH_LONG).setAction("Action", null).show();
             try {
                 mDataStore.init(this);
+
             } catch (SecurityException e){
                 RequestMultiplePermission();
             } catch (Exception e) {
@@ -236,35 +239,5 @@ public class TabbedActivity extends AppCompatActivity {
     }
 
 
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        // Returns the fragment to display for that page
-        @Override
-        public Fragment getItem(int position) {
-            switch (position) {
-                case 0: // Fragment # 0 - This will show FirstFragment
-                    return PlaceholderFragment.newInstance(0);
-                case 1: // Fragment # 0 - This will show FirstFragment
-                    return PlaceholderFragment.newInstance(1);
-                case 2: // Fragment # 0 - This will show FirstFragment different title
-                    return MapsFragment.newInstance();
-                default:
-                    return null;
-            }
-        }
-
-        @Override
-        public int getCount() {
-            // Show 3 total pages.
-            return 3;
-        }
-    }
 }

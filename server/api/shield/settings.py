@@ -29,7 +29,8 @@ ALLOWED_HOSTS = [
     'localhost',
     '192.168.1.139',
     '192.168.88.228',
-    '10.16.165.151'
+    '10.16.165.151',
+    '206.189.48.220'
 ]
 
 
@@ -92,7 +93,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 100,
+    'PAGE_SIZE': 10,
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
     ),

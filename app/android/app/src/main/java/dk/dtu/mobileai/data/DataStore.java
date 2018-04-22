@@ -8,6 +8,8 @@ import java.io.IOException;
 
 import dk.dtu.mobileai.R;
 import dk.dtu.mobileai.TabbedActivity;
+import dk.dtu.mobileai.listeners.IOnDataStoreChangedListener;
+import dk.dtu.mobileai.listeners.OnDataStoreChangedListener;
 import dk.dtu.mobileai.modules.CellularModule;
 import dk.dtu.mobileai.modules.InfoModule;
 import dk.dtu.mobileai.modules.LocationModule;
@@ -17,9 +19,11 @@ import okhttp3.Request;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class DataStore {
+public class DataStore implements IOnDataStoreChangedListener {
 
     private static Context mContext;
+
+    private static OnDataStoreChangedListener mListener;
 
     private static final DataStore ourInstance = new DataStore();
 
@@ -80,6 +84,10 @@ public class DataStore {
                 .build();
     }
 
+    public CellularModule getCellularModule(){
+        return mCellularModule;
+    }
+
     public String getApiEndpoint(){
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
         String api_endpoint = settings.getString("api_endpoint", mContext.getString(R.string.pref_default_api_endpoint));
@@ -93,7 +101,9 @@ public class DataStore {
     }
 
     public String getDeviceName(){
-        return mCellularModule.getDeviceName();
+        if (mCellularModule != null)
+            return mCellularModule.getDeviceName();
+        return null;
     }
 
     public String getApiEntityId(){
@@ -108,4 +118,17 @@ public class DataStore {
         boolean api_sync = settings.getBoolean("api_sync", true);
         return api_sync;
     }
+
+    @Override
+    public void setOnDataStoreChangedListener(OnDataStoreChangedListener listener) {
+        mListener = listener;
+    }
+
+    @Override
+    public void notifyDataChanged() {
+        if (mListener != null)
+            mListener.OnDataStoreChanged(DataStore.getInstance());
+    }
+
+
 }

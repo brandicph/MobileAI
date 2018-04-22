@@ -137,6 +137,7 @@ public class LocationModule implements LocationListener {
 
         DataStore dataStore = DataStore.getInstance();
 
+        dataStore.notifyDataChanged();
 
         if (dataStore.getApiSync()){
             IApiEndpoint apiService = dataStore.retrofit.create(IApiEndpoint.class);

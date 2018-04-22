@@ -52,10 +52,12 @@
     <string name="pref_default_api_token">94629c425a5fd26dc172e3916e168975b648d80c</string>
 
     <string name="pref_title_api_endpoint">API Endpoint</string>
-    <string name="pref_default_api_endpoint">http://192.168.1.139:8000/</string>
+    <string name="pref_default_api_endpoint">http://206.189.48.220:8000/</string>
 
     <string name="pref_title_sync_frequency">Sync frequency</string>
     <string-array name="pref_sync_frequency_titles">
+        <item>1 second</item>
+        <item>1 minute</item>
         <item>15 minutes</item>
         <item>30 minutes</item>
         <item>1 hour</item>
@@ -64,7 +66,9 @@
         <item>Never</item>
     </string-array>
     <string-array name="pref_sync_frequency_values">
-        <item>15</item>
+        <item>1</item>
+        <item>60</item>
+        <item>900</item>
         <item>30</item>
         <item>60</item>
         <item>180</item>
