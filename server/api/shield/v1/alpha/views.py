@@ -33,7 +33,7 @@ class EntityViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows Entity to be viewed or edited.
     """
-    queryset = Entity.objects.all()
+    queryset = Entity.objects.all().order_by('-created_at')
     serializer_class = EntitySerializer
     filter_backends = (filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend,)
     search_fields = '__all__'

@@ -139,7 +139,7 @@ public class LocationModule implements LocationListener {
 
         dataStore.notifyDataChanged();
 
-        if (dataStore.getApiSync()){
+        if (dataStore.apiReady()){
             IApiEndpoint apiService = dataStore.retrofit.create(IApiEndpoint.class);
 
             dk.dtu.mobileai.models.Location loc = new dk.dtu.mobileai.models.Location();

@@ -4,6 +4,8 @@
     <string name="agile_squad">Agile Squad</string>
     <string name="agile_squad_url">https://agilesquad.dk</string>
 
+    <string name="google_maps_key">AIzaSyDyLXAswQhiOPea9NB409U3pJbj61V7_As</string>
+
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="title_activity_tabbed">TabbedActivity</string>
@@ -46,13 +48,14 @@
     <string name="pref_description_api_sync">Sync data with the API</string>
 
     <string name="pref_title_api_entity_id">API Entity ID</string>
-    <string name="pref_default_api_entity_id">1</string>
+    <string name="pref_default_api_entity_id">-1</string>
 
     <string name="pref_title_api_token">API Token</string>
     <string name="pref_default_api_token">94629c425a5fd26dc172e3916e168975b648d80c</string>
 
     <string name="pref_title_api_endpoint">API Endpoint</string>
-    <string name="pref_default_api_endpoint">http://206.189.48.220:8000/</string>
+    <!--<string name="pref_default_api_endpoint">http://206.189.48.220:8000/</string>-->
+    <string name="pref_default_api_endpoint">http://192.168.1.139:8000/</string>
 
     <string name="pref_title_sync_frequency">Sync frequency</string>
     <string-array name="pref_sync_frequency_titles">

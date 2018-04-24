@@ -5,6 +5,18 @@ import com.google.gson.annotations.SerializedName;
 
 public class Entity {
 
+    @SerializedName("id")
+    @Expose
+    private int id;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     @SerializedName("url")
     @Expose
     private Object url;
@@ -27,6 +39,11 @@ public class Entity {
     @SerializedName("imei")
     @Expose
     private String imei;
+
+    @SerializedName("imsi")
+    @Expose
+    private String imsi;
+
     @SerializedName("created_at")
     @Expose
     private Object createdAt;
@@ -84,6 +101,25 @@ public class Entity {
      */
     public void setImei(String imei) {
         this.imei = imei;
+    }
+
+
+    /**
+     *
+     * (Required)
+     *
+     */
+    public String getImsi() {
+        return imsi;
+    }
+
+    /**
+     *
+     * (Required)
+     *
+     */
+    public void setImsi(String imsi) {
+        this.imsi = imsi;
     }
 
     public Object getCreatedAt() {

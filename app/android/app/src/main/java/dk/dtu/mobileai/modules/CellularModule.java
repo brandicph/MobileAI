@@ -16,6 +16,7 @@ import dk.dtu.mobileai.data.DataStore;
 import dk.dtu.mobileai.data.IApiEndpoint;
 import dk.dtu.mobileai.listeners.IOnCellularModuleChangedListener;
 import dk.dtu.mobileai.listeners.OnCellularModuleChangedListener;
+import dk.dtu.mobileai.models.Entity;
 import dk.dtu.mobileai.models.Location;
 import dk.dtu.mobileai.models.Measurement;
 import retrofit2.Call;
@@ -124,7 +125,7 @@ public class CellularModule extends PhoneStateListener implements IOnCellularMod
                     // Gets the IMSI
                     ueIMSI = mTelephonyManager.getSubscriberId();
 
-                    DataStore dataStore = DataStore.getInstance();
+                    final DataStore dataStore = DataStore.getInstance();
 
                     int cellRsrp = ((CellInfoLte) cellInfo).getCellSignalStrength().getRsrp();
                     int cellRsrq = ((CellInfoLte) cellInfo).getCellSignalStrength().getRsrq();
@@ -133,7 +134,35 @@ public class CellularModule extends PhoneStateListener implements IOnCellularMod
                     int cellRssnr = ((CellInfoLte) cellInfo).getCellSignalStrength().getRssnr();
                     int cellCqi = ((CellInfoLte) cellInfo).getCellSignalStrength().getCqi();
 
-                    if (dataStore.getApiSync()){
+                    if (!dataStore.hasApiEntityId()){
+                        IApiEndpoint apiService = dataStore.retrofit.create(IApiEndpoint.class);
+
+                        Entity entity = new Entity();
+                        entity.setName(ueDeviceName);
+                        entity.setImei(ueIMEI);
+                        entity.setImsi(ueIMSI);
+
+                        Call<Entity> call = apiService.createEntity(entity);
+
+                        try {
+                            call.enqueue(new Callback<Entity>() {
+                                @Override
+                                public void onResponse(Call<Entity> call, Response<Entity> response) {
+                                    Entity entity = response.body();
+                                    dataStore.setApiEntityId(String.format("%d", entity.getId()));
+                                }
+
+                                @Override
+                                public void onFailure(Call<Entity> call, Throwable t) {
+                                    Log.d(TAG, t.toString());
+                                }
+                            });
+                        } catch (Exception e ){
+                            Log.e(TAG, e.getMessage());
+                        }
+                    }
+
+                    if (dataStore.apiReady()){
                         IApiEndpoint apiService = dataStore.retrofit.create(IApiEndpoint.class);
 
                         Measurement measurement = new Measurement();

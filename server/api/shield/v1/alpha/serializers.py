@@ -16,6 +16,7 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class EntitySerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
     locations = serializers.HyperlinkedIdentityField(
         view_name='locations-list',
         lookup_url_kwarg='entity_pk'

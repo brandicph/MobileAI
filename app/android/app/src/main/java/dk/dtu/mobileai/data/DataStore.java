@@ -112,6 +112,21 @@ public class DataStore implements IOnDataStoreChangedListener {
         return api_entity_id;
     }
 
+    public void setApiEntityId(String id){
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString("api_entity_id", id);
+        editor.commit();
+    }
+
+    public boolean hasApiEntityId(){
+        return !getApiEntityId().equals("-1");
+    }
+
+    public boolean apiReady(){
+        return getApiSync() && hasApiEntityId();
+    }
+
 
     public boolean getApiSync(){
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
