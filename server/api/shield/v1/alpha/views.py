@@ -1,10 +1,11 @@
 from rest_framework import filters, mixins
 import django_filters.rest_framework
+from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User, Group
 from .models import Entity, Location, Measurement
 from rest_framework import viewsets, pagination
 from rest_framework.response import Response
-from .serializers import UserSerializer, GroupSerializer, EntitySerializer, LocationSerializer, MeasurementSerializer
+from .serializers import UserSerializer, GroupSerializer, TokenSerializer, EntitySerializer, LocationSerializer, MeasurementSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -27,6 +28,17 @@ class GroupViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend,)
     search_fields = ('name',)
     filter_fields = ('name',)
+
+
+class TokenViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows tokens to be viewed or edited.
+    """
+    queryset = Token.objects.all()
+    serializer_class = TokenSerializer
+    filter_backends = (filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend,)
+    search_fields = '__all__'
+    filter_fields = '__all__'
 
 
 class EntityViewSet(viewsets.ModelViewSet):

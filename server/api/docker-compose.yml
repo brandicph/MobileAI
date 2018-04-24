@@ -10,7 +10,7 @@ services:
       dockerfile: Dockerfile
     container_name: dg01
     #command: bash -c "python manage.py makemigrations && python manage.py migrate && gunicorn shield.wsgi -b 0.0.0.0:8000"
-    command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py loaddata fixtures/dev.json && python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py loaddata fixtures/prod.json && gunicorn shield.wsgi -w 8 -b 0.0.0.0:8000"
     depends_on:
       - db
     ports:

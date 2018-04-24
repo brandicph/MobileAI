@@ -1,4 +1,6 @@
 from django.contrib.auth.models import User, Group
+from rest_framework.authtoken.models import Token
+
 from .models import Entity, Location, Measurement
 from rest_framework import serializers
 
@@ -15,8 +17,17 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url', 'name')
 
 
+class TokenSerializer(serializers.HyperlinkedModelSerializer):
+    token = serializers.ReadOnlyField(source='key')
+
+    class Meta:
+        model = Token
+        fields = '__all__'
+
+
 class EntitySerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()
+
     locations = serializers.HyperlinkedIdentityField(
         view_name='locations-list',
         lookup_url_kwarg='entity_pk'
@@ -30,6 +41,7 @@ class EntitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Entity
         fields = '__all__'
+
 
 class LocationSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()

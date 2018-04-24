@@ -2,5 +2,6 @@ version: '3'
 
 services:
   web:
+    command: bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py loaddata fixtures/dev.json && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code

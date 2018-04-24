@@ -23,6 +23,7 @@ from rest_framework_nested import routers
 router = routers.DefaultRouter()
 router.register(r'users', views_alpha.UserViewSet)
 router.register(r'groups', views_alpha.GroupViewSet)
+router.register(r'tokens', views_alpha.TokenViewSet)
 router.register(r'entities', views_alpha.EntityViewSet)
 
 entity_router = routers.NestedSimpleRouter(router, r'entities', lookup='entity')
