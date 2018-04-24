@@ -31,7 +31,6 @@ public class DataStore implements IOnDataStoreChangedListener {
         return ourInstance;
     }
 
-
     private static InfoModule mInfoModule;
     private static LocationModule mLocationModule;
     private static CellularModule mCellularModule;
@@ -119,12 +118,16 @@ public class DataStore implements IOnDataStoreChangedListener {
         editor.commit();
     }
 
+    public boolean makingApiEntityId(){
+        return getApiEntityId().equals("-0");
+    }
+
     public boolean hasApiEntityId(){
         return !getApiEntityId().equals("-1");
     }
 
     public boolean apiReady(){
-        return getApiSync() && hasApiEntityId();
+        return getApiSync() && hasApiEntityId() && !makingApiEntityId();
     }
 
 

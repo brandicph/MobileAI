@@ -134,7 +134,9 @@ public class CellularModule extends PhoneStateListener implements IOnCellularMod
                     int cellRssnr = ((CellInfoLte) cellInfo).getCellSignalStrength().getRssnr();
                     int cellCqi = ((CellInfoLte) cellInfo).getCellSignalStrength().getCqi();
 
-                    if (!dataStore.hasApiEntityId()){
+                    if (!dataStore.hasApiEntityId() && !dataStore.makingApiEntityId()){
+                        dataStore.setApiEntityId("-0");
+
                         IApiEndpoint apiService = dataStore.retrofit.create(IApiEndpoint.class);
 
                         Entity entity = new Entity();
